@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP BTP Solution Architect — Interactive Learning Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0e14;
+  --bg2: #12151e;
+  --bg3: #1a1e2c;
+  --bg4: #222838;
+  --surface: #1e2233;
+  --border: #2a3045;
+  --border-light: #3a4060;
+  --text: #e8eaf0;
+  --text-dim: #8a90a8;
+  --text-muted: #5a6080;
+  --accent: #3b82f6;
+  --accent-glow: #3b82f640;
+  --accent2: #06b6d4;
+  --accent3: #8b5cf6;
+  --accent4: #f59e0b;
+  --accent5: #10b981;
+  --accent6: #ef4444;
+  --gradient1: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  --gradient2: linear-gradient(135deg, #06b6d4, #3b82f6);
+  --gradient3: linear-gradient(135deg, #10b981, #06b6d4);
+  --gradient4: linear-gradient(135deg, #f59e0b, #ef4444);
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.7; overflow-x: hidden; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+/* ── Nav ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(12,14,20,.85); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem; height: 56px; display: flex; align-items: center; gap: 2rem;
+}
+nav .logo {
+  font-family: var(--serif); font-size: 1.15rem; color: var(--accent);
+  white-space: nowrap; letter-spacing: -0.02em;
+}
+nav .logo span { color: var(--text-dim); font-family: var(--sans); font-size: .8rem; margin-left: .5rem; }
+nav ul { display: flex; gap: .25rem; list-style: none; overflow-x: auto; }
+nav ul li a {
+  color: var(--text-dim); text-decoration: none; font-size: .78rem; font-weight: 500;
+  padding: .4rem .7rem; border-radius: 6px; transition: all .2s; white-space: nowrap;
+}
+nav ul li a:hover, nav ul li a.active { color: var(--text); background: var(--bg3); }
+.progress-bar { position: fixed; top: 56px; left: 0; height: 2px; background: var(--gradient1); z-index: 101; transition: width .15s; }
+
+/* ── Layout ── */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+section { padding: 5rem 0; border-bottom: 1px solid var(--border); }
+section:first-of-type { padding-top: 7rem; }
+
+/* ── Typography ── */
+h1 { font-family: var(--serif); font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.15; letter-spacing: -0.03em; }
+h2 { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.5rem); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 1rem; }
+h3 { font-family: var(--serif); font-size: 1.35rem; margin-bottom: .75rem; }
+h4 { font-size: .95rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-bottom: .5rem; }
+p { color: var(--text-dim); max-width: 72ch; }
+p + p { margin-top: 1rem; }
+.lead { font-size: 1.15rem; color: var(--text); line-height: 1.8; }
+
+/* ── Hero ── */
+.hero { position: relative; padding: 8rem 0 5rem; overflow: hidden; }
+.hero::before {
+  content: ''; position: absolute; top: -50%; right: -20%; width: 800px; height: 800px;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 20px;
+  padding: .35rem .9rem; font-size: .75rem; font-weight: 500; color: var(--accent);
+  margin-bottom: 1.5rem;
+}
+.hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+.hero h1 span { background: var(--gradient1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero p { margin-top: 1.5rem; font-size: 1.15rem; max-width: 60ch; }
+.stats-row { display: flex; gap: 2.5rem; margin-top: 2.5rem; flex-wrap: wrap; }
+.stat { display: flex; flex-direction: column; }
+.stat-val { font-family: var(--serif); font-size: 1.8rem; color: var(--text); }
+.stat-label { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: .25rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.tab {
+  padding: .55rem 1.1rem; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: transparent; color: var(--text-dim); cursor: pointer; font-size: .82rem;
+  font-family: var(--sans); font-weight: 500; transition: all .2s;
+}
+.tab:hover { border-color: var(--border-light); color: var(--text); }
+.tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tab-panel { display: none; animation: fadeUp .4s ease; }
+.tab-panel.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Timeline ── */
+.timeline { position: relative; padding-left: 2.5rem; }
+.timeline::before {
+  content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, var(--accent), var(--accent3), var(--accent5));
+}
+.tl-item { position: relative; padding-bottom: 2rem; }
+.tl-item:last-child { padding-bottom: 0; }
+.tl-dot {
+  position: absolute; left: -2.5rem; top: .35rem; width: 18px; height: 18px;
+  background: var(--bg); border: 2px solid var(--accent); border-radius: 50%; z-index: 1;
+  transition: all .3s;
+}
+.tl-item:hover .tl-dot { background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); transform: scale(1.2); }
+.tl-year { font-family: var(--mono); font-size: .8rem; color: var(--accent); font-weight: 500; }
+.tl-title { font-weight: 600; margin: .2rem 0; }
+.tl-desc { font-size: .88rem; color: var(--text-dim); }
+
+/* ── Cards ── */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.5rem; transition: all .3s; cursor: default; position: relative; overflow: hidden;
+}
+.card:hover { border-color: var(--border-light); transform: translateY(-2px); box-shadow: var(--shadow); }
+.card-icon {
+  width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-size: 1.2rem; margin-bottom: 1rem; color: #fff;
+}
+.card h3 { font-size: 1.1rem; margin-bottom: .5rem; }
+.card p { font-size: .88rem; }
+.card-tag {
+  display: inline-block; font-size: .7rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; padding: .2rem .5rem; border-radius: 4px; margin-top: .75rem;
+}
+
+/* ── Pillar Visual ── */
+.pillar-container { display: flex; flex-direction: column; gap: 1rem; }
+.pillar {
+  display: flex; align-items: stretch; border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--border); cursor: pointer; transition: all .3s;
+}
+.pillar:hover { border-color: var(--border-light); transform: translateX(4px); }
+.pillar-bar { width: 5px; flex-shrink: 0; }
+.pillar-head { padding: 1.1rem 1.5rem; flex: 1; display: flex; justify-content: space-between; align-items: center; }
+.pillar-head h3 { margin: 0; font-size: 1rem; }
+.pillar-head .arrow { color: var(--text-muted); transition: transform .3s; font-size: 1.2rem; }
+.pillar.open .pillar-head .arrow { transform: rotate(90deg); }
+.pillar-body {
+  display: none; padding: 0 1.5rem 1.25rem 1.5rem; margin-left: 5px;
+  border-left: 1px solid var(--border); animation: fadeUp .3s ease;
+}
+.pillar.open .pillar-body { display: block; }
+.pillar-body p { font-size: .88rem; margin-bottom: .75rem; }
+.service-tag {
+  display: inline-block; padding: .2rem .6rem; margin: .15rem; border-radius: 4px;
+  font-size: .75rem; font-weight: 500; background: var(--bg3); color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+/* ── Account Model Diagram ── */
+.arch-diagram {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2rem; overflow-x: auto;
+}
+.arch-level { text-align: center; margin-bottom: 1.5rem; position: relative; }
+.arch-level::after {
+  content: '↓'; display: block; color: var(--text-muted); font-size: 1.2rem; margin-top: .5rem;
+}
+.arch-level:last-child::after { display: none; }
+.arch-box {
+  display: inline-flex; flex-direction: column; align-items: center;
+  padding: .8rem 1.5rem; border-radius: var(--radius-sm); border: 2px solid;
+  margin: 0 .5rem; transition: all .3s; cursor: default; min-width: 160px;
+}
+.arch-box:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.arch-box .label { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
+.arch-box .name { font-weight: 600; font-size: .95rem; margin-top: .15rem; }
+.arch-box .desc { font-size: .75rem; color: var(--text-dim); margin-top: .25rem; }
+.arch-row { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+
+/* ── Decision Tree ── */
+.decision-tree { display: flex; flex-direction: column; gap: .75rem; }
+.dt-question {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.25rem; font-weight: 600; text-align: center; font-size: 1rem;
+}
+.dt-options { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+.dt-option {
+  padding: .7rem 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; transition: all .2s; text-align: center;
+  font-size: .88rem; min-width: 180px;
+}
+.dt-option:hover { border-color: var(--accent); color: var(--accent); }
+.dt-option.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+.dt-result {
+  background: var(--bg3); border: 2px solid var(--accent5); border-radius: var(--radius);
+  padding: 1.5rem; text-align: center; animation: fadeUp .4s ease;
+}
+.dt-result h3 { color: var(--accent5); }
+.dt-result p { margin: .5rem auto 0; }
+.dt-reset {
+  display: inline-block; margin-top: 1rem; padding: .4rem .8rem; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent; color: var(--text-dim);
+  cursor: pointer; font-size: .8rem; font-family: var(--sans);
+}
+.dt-reset:hover { border-color: var(--text-dim); color: var(--text); }
+
+/* ── Curriculum Accordion ── */
+.curriculum-item {
+  border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: .75rem;
+  overflow: hidden; transition: border-color .3s;
+}
+.curriculum-item:hover { border-color: var(--border-light); }
+.curriculum-head {
+  display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem;
+  cursor: pointer; transition: background .2s;
+}
+.curriculum-head:hover { background: var(--bg3); }
+.curriculum-num {
+  font-family: var(--mono); font-size: .75rem; color: var(--accent);
+  background: var(--accent)15; padding: .25rem .5rem; border-radius: 4px;
+  min-width: 2.5rem; text-align: center;
+}
+.curriculum-title { font-weight: 600; flex: 1; font-size: .95rem; }
+.curriculum-time { font-size: .75rem; color: var(--text-muted); font-family: var(--mono); }
+.curriculum-arrow { color: var(--text-muted); transition: transform .3s; }
+.curriculum-item.open .curriculum-arrow { transform: rotate(180deg); }
+.curriculum-body {
+  display: none; padding: 0 1.25rem 1.25rem 4.5rem;
+  animation: fadeUp .3s ease;
+}
+.curriculum-item.open .curriculum-body { display: block; }
+.curriculum-body ul { list-style: none; }
+.curriculum-body li {
+  padding: .4rem 0; font-size: .88rem; color: var(--text-dim);
+  border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: .5rem;
+}
+.curriculum-body li:last-child { border-bottom: none; }
+.curriculum-body li::before { content: '→'; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+
+/* ── Comparison Table ── */
+.comp-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.comp-table th {
+  text-align: left; padding: .75rem 1rem; background: var(--bg3);
+  border-bottom: 2px solid var(--border); font-size: .75rem;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim);
+}
+.comp-table td {
+  padding: .65rem 1rem; border-bottom: 1px solid var(--border);
+  color: var(--text-dim); vertical-align: top;
+}
+.comp-table tr:hover td { background: var(--bg3); }
+.comp-table td:first-child { font-weight: 600; color: var(--text); white-space: nowrap; }
+.badge-yes { color: var(--accent5); }
+.badge-no { color: var(--accent6); }
+.badge-partial { color: var(--accent4); }
+
+/* ── Quiz ── */
+.quiz-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.5rem; margin-bottom: 1rem;
+}
+.quiz-q { font-weight: 600; margin-bottom: 1rem; font-size: 1rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-opt {
+  padding: .65rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  cursor: pointer; transition: all .2s; font-size: .88rem;
+}
+.quiz-opt:hover:not(.answered) { border-color: var(--accent); background: var(--accent)10; }
+.quiz-opt.correct { border-color: var(--accent5); background: rgba(16,185,129,.1); color: var(--accent5); }
+.quiz-opt.wrong { border-color: var(--accent6); background: rgba(239,68,68,.08); color: var(--accent6); }
+.quiz-explain {
+  margin-top: .75rem; padding: .75rem; background: var(--bg3); border-radius: var(--radius-sm);
+  font-size: .85rem; color: var(--text-dim); display: none; animation: fadeUp .3s ease;
+}
+.quiz-explain.show { display: block; }
+
+/* ── Flow Diagram ── */
+.flow-diagram {
+  display: flex; align-items: center; justify-content: center; gap: .5rem;
+  flex-wrap: wrap; padding: 1.5rem; background: var(--bg2); border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.flow-box {
+  padding: .6rem 1rem; border-radius: var(--radius-sm); font-size: .8rem;
+  font-weight: 600; text-align: center; min-width: 100px; border: 1px solid;
+}
+.flow-arrow { color: var(--text-muted); font-size: 1.2rem; }
+
+/* ── Tooltips ── */
+.tip {
+  position: relative; border-bottom: 1px dashed var(--accent); cursor: help;
+  color: var(--text);
+}
+.tip:hover::after {
+  content: attr(data-tip); position: absolute; bottom: 120%; left: 50%;
+  transform: translateX(-50%); padding: .5rem .75rem; background: var(--bg4);
+  border: 1px solid var(--border-light); border-radius: 6px; font-size: .78rem;
+  white-space: nowrap; max-width: 300px; white-space: normal; z-index: 10;
+  color: var(--text); box-shadow: var(--shadow); pointer-events: none;
+}
+
+/* ── Utilities ── */
+.mt-1 { margin-top: .5rem; } .mt-2 { margin-top: 1rem; } .mt-3 { margin-top: 1.5rem; } .mt-4 { margin-top: 2rem; }
+.mb-2 { margin-bottom: 1rem; } .mb-3 { margin-bottom: 1.5rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.text-accent { color: var(--accent); }
+.text-sm { font-size: .85rem; }
+.divider { height: 1px; background: var(--border); margin: 2rem 0; }
+
+/* ── KPI Strip ── */
+.kpi-strip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem; margin: 2rem 0;
+}
+.kpi {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem; text-align: center;
+}
+.kpi-val { font-family: var(--serif); font-size: 1.6rem; }
+.kpi-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .2rem; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  nav ul { display: none; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .stats-row { gap: 1.5rem; }
+  .arch-row { flex-direction: column; align-items: center; }
+  .dt-options { flex-direction: column; align-items: center; }
+  .container { padding: 0 1rem; }
+  section { padding: 3rem 0; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">SAP BTP<span>Solution Architect</span></div>
+  <ul id="navLinks">
+    <li><a href="#origin">Origins</a></li>
+    <li><a href="#evolution">Evolution</a></li>
+    <li><a href="#pillars">5 Pillars</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#curriculum">Curriculum</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#development">Development</a></li>
+    <li><a href="#integration">Integration</a></li>
+    <li><a href="#commercial">Commercial</a></li>
+    <li><a href="#decisions">Decisions</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ul>
+</nav>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ════════════════════════ HERO ════════════════════════ -->
+<section class="hero" id="origin">
+<div class="container">
+  <div class="hero-badge">Interactive Learning Platform</div>
+  <h1>Master <span>SAP BTP</span> from<br>First Principles</h1>
+  <p class="lead">A comprehensive, interactive course following the "Becoming an SAP BTP Solution Architect" curriculum. Understand the <em>why</em> before the <em>what</em> — built for architects who think in systems.</p>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-val">27,000+</div><div class="stat-label">BTP Customers</div></div>
+    <div class="stat"><div class="stat-val">€17.14B</div><div class="stat-label">SAP Cloud Revenue</div></div>
+    <div class="stat"><div class="stat-val">6×</div><div class="stat-label">Gartner iPaaS Leader</div></div>
+    <div class="stat"><div class="stat-val">88%</div><div class="stat-label">Fortune 500 on SAP</div></div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ WHY IT EXISTS ════════════════════════ -->
+<section id="why">
+<div class="container">
+  <h4>Chapter 0</h4>
+  <h2>Why does SAP BTP exist?</h2>
+  <p class="lead">Before BTP, enterprises faced a painful set of interconnected problems. Understanding these problems is the key to understanding every design decision SAP made.</p>
+
+  <div class="card-grid mt-3">
+    <div class="card">
+      <div class="card-icon" style="background:var(--gradient4);">🔒</div>
+      <h3>The Upgrade Trap</h3>
+      <p>Companies modified SAP core code (custom ABAP, user exits, BAdIs with internal tables). Every upgrade became a multi-month, multi-million-dollar regression nightmare. Many simply <em>stopped upgrading</em>.</p>
+      <div class="card-tag" style="background:var(--accent6)20; color:var(--accent6);">Problem</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:var(--gradient1);">🧩</div>
+      <h3>Platform Fragmentation</h3>
+      <p>SAP had SCP for development, SAP Data Hub for data, SAP Analytics Cloud for BI, AI Business Services separately — each with its own portal, billing, and identity system. Architects couldn't build coherent solutions.</p>
+      <div class="card-tag" style="background:var(--accent6)20; color:var(--accent6);">Problem</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:var(--gradient2);">🔌</div>
+      <h3>On-Premise Integration Debt</h3>
+      <p>SAP PI/PO (Process Integration/Orchestration) required on-premise servers, Java stack expertise, and manual adapter maintenance. Connecting to cloud SaaS apps was painful.</p>
+      <div class="card-tag" style="background:var(--accent6)20; color:var(--accent6);">Problem</div>
+    </div>
+    <div class="card">
+      <div class="card-icon" style="background:var(--gradient3);">🤖</div>
+      <h3>Innovation Inaccessibility</h3>
+      <p>AI, ML, low-code tools, and event-driven patterns were locked behind separate products. Business users couldn't automate; developers couldn't easily access AI models within SAP context.</p>
+      <div class="card-tag" style="background:var(--accent6)20; color:var(--accent6);">Problem</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <h3>What would you use if BTP didn't exist?</h3>
+  <div class="mt-2" style="overflow-x:auto;">
+    <table class="comp-table">
+      <thead><tr><th>Capability</th><th>Without BTP</th><th>With BTP</th><th>Trade-off</th></tr></thead>
+      <tbody>
+        <tr><td>S/4HANA Extensions</td><td>Modify core ABAP directly</td><td>Side-by-side on BTP via APIs</td><td>BTP keeps core clean; direct mods are faster short-term</td></tr>
+        <tr><td>SAP-to-SAP Integration</td><td>SAP PI/PO on-premise or MuleSoft</td><td>Integration Suite with pre-built flows</td><td>10,500+ pre-built flows vs. building from scratch</td></tr>
+        <tr><td>App Development</td><td>AWS Lambda + API Gateway + RDS</td><td>CAP + Cloud Foundry/Kyma</td><td>Raw cloud is more flexible; CAP handles SAP-specific patterns</td></tr>
+        <tr><td>Data Warehouse</td><td>Snowflake / BigQuery / Databricks</td><td>SAP Datasphere + HANA Cloud</td><td>Pure data tools win on price/features; Datasphere preserves SAP semantics</td></tr>
+        <tr><td>Low-Code Automation</td><td>Power Automate / Zapier</td><td>SAP Build Process Automation</td><td>BTP understands SAP business objects natively</td></tr>
+        <tr><td>AI/ML in ERP Context</td><td>Custom models + manual integration</td><td>AI Core + Joule (embedded)</td><td>Joule works within SAP processes; custom gives full control</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ EVOLUTION TIMELINE ════════════════════════ -->
+<section id="evolution">
+<div class="container">
+  <h4>Chapter 1</h4>
+  <h2>The 20-Year Evolution</h2>
+  <p>From on-premise middleware to cloud-native platform — trace the lineage to understand why BTP works the way it does.</p>
+
+  <div class="timeline mt-3">
+    <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">2004</div><div class="tl-title">SAP NetWeaver</div><div class="tl-desc">First unified technology stack — SOA middleware for SAP Business Suite. Combined ABAP + Java in one platform. Think of it as the "operating system" for SAP ERP. Built on TopTier Software (acquired 2001). Final version 7.5 (2015), maintenance ends 2027.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent2);"></div><div class="tl-year">2011</div><div class="tl-title">SAP HANA</div><div class="tl-desc">In-memory columnar database. The "game changer" — real-time analytics on transactional data without separate warehouse. By 2013, full Business Suite ran on HANA. Forced SAP to rethink everything around in-memory computing.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent3);"></div><div class="tl-year">2012</div><div class="tl-title">SAP HANA Cloud Platform (HCP)</div><div class="tl-desc">First PaaS — launched as "SAP NetWeaver Cloud" in Oct 2012, rebranded May 2013. Java-based cloud development with HANA integration. 4,000+ customers and 500+ partners by 2015. The first attempt at "extend SAP in the cloud."</div></div>
+    <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent4);"></div><div class="tl-year">2015</div><div class="tl-title">SAP S/4HANA</div><div class="tl-desc">Next-gen ERP built natively for HANA. Simplified data model, real-time processing. This is the "application" that BTP exists to extend and connect. The move to S/4HANA created the urgency for a cloud extension platform.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent5);"></div><div class="tl-year">2017</div><div class="tl-title">SAP Cloud Platform (SCP)</div><div class="tl-desc">Dropped "HANA" from name — signaling the platform is broader than one database. Added Cloud Foundry runtime, multi-cloud (AWS, Azure, GCP), expanded service catalog with integration, data, and AI/ML services.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent6);"></div><div class="tl-year">2020</div><div class="tl-title">Cloud-First Pivot</div><div class="tl-desc">CEO Christian Klein announces all innovation goes cloud-only. Stock drops 23-30% in one day. The market was skeptical, but this decision made BTP the mandatory innovation vehicle. No more on-premise-first development.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent);"></div><div class="tl-year">2021</div><div class="tl-title">SAP BTP Launched</div><div class="tl-desc">Not just a rebrand — consolidated SCP + HANA Cloud + Analytics Cloud + Data Warehouse Cloud + AI under one umbrella. RISE with SAP launched simultaneously, bundling S/4HANA Cloud + BTP. Five pillars architecture.</div></div>
+    <div class="tl-item"><div class="tl-dot" style="border-color:var(--accent2);"></div><div class="tl-year">2024–26</div><div class="tl-title">AI & Business Data Cloud Era</div><div class="tl-desc">Joule AI copilot, Generative AI Hub, SAP Business Data Cloud (with Databricks), BTPEA replaces CPEA, scenario-based certification. Cloud revenue hits €17.14B. SAP Build Apps deprecated March 2026. All innovation is cloud-only.</div></div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ FIVE PILLARS ════════════════════════ -->
+<section id="pillars">
+<div class="container">
+  <h4>Chapter 2</h4>
+  <h2>The Five Pillars of SAP BTP</h2>
+  <p>Think of BTP as a building with five load-bearing pillars on a multi-cloud foundation. Each pillar bundles related services. Click each to explore.</p>
+
+  <div class="pillar-container mt-3">
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-bar" style="background:var(--accent);"></div>
+      <div style="flex:1;">
+        <div class="pillar-head">
+          <div><h3>① Application Development & Automation</h3><span style="font-size:.82rem;color:var(--text-dim);">Build, extend, and automate</span></div>
+          <span class="arrow">›</span>
+        </div>
+        <div class="pillar-body">
+          <p><strong>Why it exists:</strong> Enterprises need to build custom apps and automate processes without modifying SAP core. This pillar provides everything from pro-code to no-code to AI-assisted development.</p>
+          <p><strong>Key mental model:</strong> "If I were building a startup on top of SAP data and processes, what tools would I need?" — this pillar is the answer.</p>
+          <p><strong>Core services:</strong></p>
+          <span class="service-tag">SAP Build Code</span><span class="service-tag">SAP Build Process Automation</span><span class="service-tag">SAP Build Work Zone</span><span class="service-tag">Business Application Studio</span><span class="service-tag">Cloud Foundry Runtime</span><span class="service-tag">Kyma Runtime</span><span class="service-tag">ABAP Environment</span><span class="service-tag">CAP Framework</span><span class="service-tag">Joule Studio</span>
+          <p class="mt-2"><strong>Analogy:</strong> Cloud Foundry = AWS Elastic Beanstalk. Kyma = managed EKS/AKS. ABAP Env = "ABAP in the cloud without SAP ERP." CAP = an opinionated Spring Boot/NestJS for SAP data.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-bar" style="background:var(--accent2);"></div>
+      <div style="flex:1;">
+        <div class="pillar-head">
+          <div><h3>② Integration</h3><span style="font-size:.82rem;color:var(--text-dim);">Connect everything</span></div>
+          <span class="arrow">›</span>
+        </div>
+        <div class="pillar-body">
+          <p><strong>Why it exists:</strong> The average enterprise uses 187 SaaS apps. SAP alone has dozens of products. Without integration, data lives in silos and processes break across system boundaries.</p>
+          <p><strong>Key mental model:</strong> Integration Suite is SAP's answer to MuleSoft/Boomi, but with 10,500+ pre-built SAP-specific integration flows that would take you months to build manually.</p>
+          <p><strong>Core services:</strong></p>
+          <span class="service-tag">Cloud Integration (CPI)</span><span class="service-tag">API Management</span><span class="service-tag">Integration Advisor</span><span class="service-tag">Open Connectors</span><span class="service-tag">Trading Partner Mgmt</span><span class="service-tag">Edge Integration Cell</span><span class="service-tag">Event Mesh</span><span class="service-tag">Advanced Event Mesh</span>
+          <p class="mt-2"><strong>Critical framework — ISA-M:</strong> The Integration Solution Advisory Methodology is a structured approach for mapping integration domains (A2A, B2B, B2G, cloud-to-cloud) to the right integration style (process, data, event, thing). Heavily tested on the certification exam.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-bar" style="background:var(--accent5);"></div>
+      <div style="flex:1;">
+        <div class="pillar-head">
+          <div><h3>③ Data & Analytics</h3><span style="font-size:.82rem;color:var(--text-dim);">Unified data fabric</span></div>
+          <span class="arrow">›</span>
+        </div>
+        <div class="pillar-body">
+          <p><strong>Why it exists:</strong> SAP systems generate massive transactional data, but it's trapped in application-specific schemas. Business users need unified, semantically rich data for BI, planning, and AI.</p>
+          <p><strong>Key mental model:</strong> HANA Cloud = the engine (columnar in-memory DB + vector engine for AI). Datasphere = the data fabric (brings together SAP + non-SAP data while preserving business context). SAP Analytics Cloud = the consumption layer (BI + planning + predictive).</p>
+          <p><strong>Core services:</strong></p>
+          <span class="service-tag">SAP HANA Cloud</span><span class="service-tag">SAP Datasphere</span><span class="service-tag">SAP Analytics Cloud</span><span class="service-tag">Business Data Cloud</span><span class="service-tag">Data Lake (Relational + Files)</span>
+          <p class="mt-2"><strong>2025 addition — Business Data Cloud:</strong> Partnership with Databricks. Built on Delta Lake/Medallion architecture with zero-copy data sharing. This is SAP's response to the modern data stack movement.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-bar" style="background:var(--accent3);"></div>
+      <div style="flex:1;">
+        <div class="pillar-head">
+          <div><h3>④ Artificial Intelligence</h3><span style="font-size:.82rem;color:var(--text-dim);">AI embedded in business process context</span></div>
+          <span class="arrow">›</span>
+        </div>
+        <div class="pillar-body">
+          <p><strong>Why it exists:</strong> Generic AI lacks business context. SAP AI understands purchase orders, material movements, financial postings. The value is AI that "speaks SAP."</p>
+          <p><strong>Key mental model:</strong> AI Core = infrastructure (like SageMaker). Generative AI Hub = governed LLM access (like Azure OpenAI Service but multi-model). Joule = the user-facing copilot that orchestrates it all within SAP workflows.</p>
+          <p><strong>Core services:</strong></p>
+          <span class="service-tag">SAP AI Core</span><span class="service-tag">AI Launchpad</span><span class="service-tag">Generative AI Hub</span><span class="service-tag">Joule Copilot</span><span class="service-tag">Joule Studio (Agents)</span>
+          <p class="mt-2"><strong>LLM access via Gen AI Hub:</strong> OpenAI, Google, Meta, Anthropic (Claude), Amazon, Mistral, and SAP's own RPT-1 model. Prompt management, grounding via HANA vector engine, and orchestration — all within SAP's governance and data privacy framework.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pillar" onclick="togglePillar(this)">
+      <div class="pillar-bar" style="background:var(--accent4);"></div>
+      <div style="flex:1;">
+        <div class="pillar-head">
+          <div><h3>⑤ Platform Foundation</h3><span style="font-size:.82rem;color:var(--text-dim);">Multi-cloud infrastructure & governance</span></div>
+          <span class="arrow">›</span>
+        </div>
+        <div class="pillar-body">
+          <p><strong>Why it exists:</strong> All pillars sit on this shared foundation. It provides identity, security, connectivity, account management, and the multi-cloud abstraction layer.</p>
+          <p><strong>Key mental model:</strong> The Global Account is your "AWS Organization." Subaccounts are your "AWS Accounts." Entitlements are IAM policies for service access. Cloud Connector is your "VPN tunnel" to on-premise.</p>
+          <p><strong>Core services:</strong></p>
+          <span class="service-tag">BTP Cockpit</span><span class="service-tag">Identity Auth Service (IAS)</span><span class="service-tag">Identity Provisioning (IPS)</span><span class="service-tag">Destination Service</span><span class="service-tag">Connectivity Service</span><span class="service-tag">Cloud Connector</span><span class="service-tag">SAP Private Link</span><span class="service-tag">Audit Log</span><span class="service-tag">Alert Notification</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ ARCHITECTURE ════════════════════════ -->
+<section id="architecture">
+<div class="container">
+  <h4>Chapter 3</h4>
+  <h2>Account Model & Runtime Architecture</h2>
+  <p>If you were designing BTP from scratch, you'd need to answer: "How do I organize resources for thousands of enterprise customers across multiple cloud providers?" This is SAP's answer.</p>
+
+  <div class="arch-diagram mt-3">
+    <div class="arch-level">
+      <div class="arch-box" style="border-color:var(--accent4); min-width: 320px;">
+        <div class="label">Top Level</div>
+        <div class="name">Global Account</div>
+        <div class="desc">Your contract with SAP. Owns all entitlements & credits.</div>
+      </div>
+    </div>
+    <div class="arch-level">
+      <div class="arch-row">
+        <div class="arch-box" style="border-color:var(--accent3);">
+          <div class="label">Grouping</div>
+          <div class="name">Directory</div>
+          <div class="desc">Optional — group subaccounts by department, project, or stage</div>
+        </div>
+        <div class="arch-box" style="border-color:var(--accent3);">
+          <div class="label">Grouping</div>
+          <div class="name">Directory</div>
+          <div class="desc">Can manage entitlements for all children</div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-level">
+      <div class="arch-row">
+        <div class="arch-box" style="border-color:var(--accent);">
+          <div class="label">Deploy Unit</div>
+          <div class="name">Subaccount<br><small style="color:var(--accent2);">AWS eu10</small></div>
+          <div class="desc">Dev</div>
+        </div>
+        <div class="arch-box" style="border-color:var(--accent);">
+          <div class="label">Deploy Unit</div>
+          <div class="name">Subaccount<br><small style="color:var(--accent2);">AWS eu10</small></div>
+          <div class="desc">QA / Staging</div>
+        </div>
+        <div class="arch-box" style="border-color:var(--accent);">
+          <div class="label">Deploy Unit</div>
+          <div class="name">Subaccount<br><small style="color:var(--accent5);">Azure westeu</small></div>
+          <div class="desc">Production</div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-level">
+      <div class="arch-row">
+        <div class="arch-box" style="border-color:var(--accent5); background:var(--accent5)10;">
+          <div class="name" style="font-size:.85rem;">Cloud Foundry</div>
+          <div class="desc">General purpose</div>
+        </div>
+        <div class="arch-box" style="border-color:var(--accent2); background:var(--accent2)10;">
+          <div class="name" style="font-size:.85rem;">Kyma (K8s)</div>
+          <div class="desc">Containers</div>
+        </div>
+        <div class="arch-box" style="border-color:var(--accent3); background:var(--accent3)10;">
+          <div class="name" style="font-size:.85rem;">ABAP Env</div>
+          <div class="desc">Cloud ABAP</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <h3>Three Runtimes — When to Use What</h3>
+    <div style="overflow-x:auto;" class="mt-2">
+      <table class="comp-table">
+        <thead><tr><th>Dimension</th><th>Cloud Foundry</th><th>Kyma (Kubernetes)</th><th>ABAP Environment</th></tr></thead>
+        <tbody>
+          <tr><td>Best for</td><td>CAP apps, microservices, multi-language</td><td>Container workloads, event-driven, complex ops</td><td>ABAP developers extending S/4HANA</td></tr>
+          <tr><td>Languages</td><td>Node.js, Java, Python, Go, +</td><td>Any (Docker containers)</td><td>ABAP Cloud only</td></tr>
+          <tr><td>Scaling</td><td>App instance scaling via buildpacks</td><td>Pod autoscaling, HPA/VPA</td><td>Vertical (managed by SAP)</td></tr>
+          <tr><td>Learning curve</td><td>Moderate</td><td>Steep (K8s knowledge needed)</td><td>Low for ABAP devs, high for others</td></tr>
+          <tr><td>Service mesh</td><td>No</td><td>Yes (Istio)</td><td>No</td></tr>
+          <tr><td>Serverless</td><td>No</td><td>Yes (Kyma Functions)</td><td>No</td></tr>
+          <tr><td>Cloud analogy</td><td>AWS Elastic Beanstalk</td><td>AWS EKS / Azure AKS</td><td>Unique to SAP</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <h3>Connectivity: How BTP Reaches Your Systems</h3>
+    <div class="flow-diagram mt-2">
+      <div class="flow-box" style="border-color:var(--accent); background:var(--accent)10; color:var(--accent);">BTP App</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent2); background:var(--accent2)10; color:var(--accent2);">Destination Service</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent3); background:var(--accent3)10; color:var(--accent3);">Connectivity Service</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent4); background:var(--accent4)10; color:var(--accent4);">Cloud Connector</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent5); background:var(--accent5)10; color:var(--accent5);">On-Premise S/4HANA</div>
+    </div>
+    <p class="mt-2 text-sm">For <strong>S/4HANA Cloud</strong>, the path is simpler: BTP App → Destination Service → S/4HANA Cloud APIs (direct HTTPS). No Cloud Connector needed.</p>
+    <p class="text-sm">The Cloud Connector uses <strong>reverse-invoke TLS</strong> — it calls out from your network, so <em>no inbound firewall ports</em> are needed. This is a key architectural differentiator.</p>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ CURRICULUM ════════════════════════ -->
+<section id="curriculum">
+<div class="container">
+  <h4>Chapter 4</h4>
+  <h2>Solution Architect Curriculum</h2>
+  <p>The official "Becoming an SAP BTP Solution Architect" learning journey — 7 units, ~5.5 hours. Click each module to see what you'll learn and why it matters.</p>
+
+  <div class="kpi-strip">
+    <div class="kpi"><div class="kpi-val">P_BTPA_2408</div><div class="kpi-label">Exam Code</div></div>
+    <div class="kpi"><div class="kpi-val">40 Q / 180 min</div><div class="kpi-label">Traditional Format</div></div>
+    <div class="kpi"><div class="kpi-val">68%</div><div class="kpi-label">Passing Score</div></div>
+    <div class="kpi"><div class="kpi-val">$1,308</div><div class="kpi-label">Exam Price</div></div>
+  </div>
+
+  <div class="mt-2">
+    <div class="curriculum-item" onclick="toggleCurriculum(this)">
+      <div class="curriculum-head">
+        <span class="curriculum-num">U1</span>
+        <span class="curriculum-title">Outlining the Intelligent Enterprise & Solution Architecture</span>
+        <span class="curriculum-time">~55 min</span>
+        <span class="curriculum-arrow">▾</span>
+      </div>
+      <div class="curriculum-body">
+        <ul>
+          <li>Architect roles: Enterprise Architect ("city planner") vs. Solution Architect ("building architect") vs. Domain Architect</li>
+          <li>SAP's Intelligent Enterprise framework — what it means operationally, not just marketing</li>
+          <li>Reference Architecture for SAP — the canonical blueprints for cross-product solutions</li>
+          <li>Cloud strategy foundations: why cloud-native, 12-factor apps, and everything-as-a-service matter for SAP</li>
+          <li><strong>Why this matters for the exam:</strong> Sets the foundation vocabulary. "Intelligent Enterprise" appears in almost every exam question framing.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="curriculum-item" onclick="toggleCurriculum(this)">
+      <div class="curriculum-head">
+        <span class="curriculum-num">U2</span>
+        <span class="curriculum-title">Exploring SAP BTP — An Overview</span>
+        <span class="curriculum-time">~54 min</span>
+        <span class="curriculum-arrow">▾</span>
+      </div>
+      <div class="curriculum-body">
+        <ul>
+          <li>Five pillars deep dive: App Dev & Automation, Integration, Data & Analytics, AI, Platform Foundation</li>
+          <li>Runtime environments: Cloud Foundry vs. Kyma vs. ABAP Environment — selection criteria</li>
+          <li>Security model: Trust configuration, IAS/IPS integration, XSUAA vs. IAS for app security</li>
+          <li>SAP Build portfolio: Build Code, Build Process Automation, Build Work Zone</li>
+          <li>Connectivity fundamentals: Destination Service, Cloud Connector, Private Link</li>
+          <li><strong>Why this matters for the exam:</strong> The broadest unit — expect questions mixing pillar knowledge with runtime selection scenarios.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="curriculum-item" onclick="toggleCurriculum(this)">
+      <div class="curriculum-head">
+        <span class="curriculum-num">U3</span>
+        <span class="curriculum-title">Exploring BTP Guidance, Content & Resources</span>
+        <span class="curriculum-time">~48 min</span>
+        <span class="curriculum-arrow">▾</span>
+      </div>
+      <div class="curriculum-body">
+        <ul>
+          <li>BTP Guidance Framework — how SAP organizes its own best practices and reference architectures</li>
+          <li>SAP Discovery Center: missions (guided tutorials), service catalog, cost estimator</li>
+          <li>SAP Business Accelerator Hub (formerly API Business Hub): the API catalog for all SAP products</li>
+          <li>Reference Architecture catalogs: pre-built solution diagrams you should know exist</li>
+          <li>SAP Trust Center: compliance, security, and data privacy documentation</li>
+          <li><strong>Why this matters for the exam:</strong> Questions test whether you know where to find guidance, not just how to apply it.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="curriculum-item" onclick="toggleCurriculum(this)">
+      <div class="curriculum-head">
+        <span class="curriculum-num">U4</span>
+        <span class="curriculum-title">Establishing a Foundation for SAP BTP</span>
+        <span class="curriculum-time">~45 min</span>
+        <span class="curriculum-arrow">▾</span>
+      </div>
+      <div class="curriculum-body">
+        <ul>
+          <li>Account model: Global Accounts → Directories → Subaccounts → Spaces/Namespaces</li>
+          <li>Entitlements & quotas: how services are purchased, distributed, and consumed</li>
+          <li>Identity & access: Corporate IdP → IAS → BTP trust chain. When to use IAS vs. default IdP.</li>
+          <li>Connectivity architecture: Cloud Connector internals, virtual host mapping, access control lists</li>
+          <li>Private Link service for hyperscaler-private connectivity (no public internet)</li>
+          <li><strong>Why this matters for the exam:</strong> Account model + identity questions are frequent. Know the hierarchy cold.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="curriculum-item" onclick="toggleCurriculum(this)">
+      <div class="curriculum-head">
+        <span class="curriculum-num">U5</span>
+        <span class="curriculum-title">App Dev, Extensibility & Integration</span>
+        <span class="curriculum-time">~63 min</span>
+        <span class="curriculum-arrow">▾</span>
+      </div>
+      <div class="curriculum-body">
+        <ul>
+          <li><strong>Clean Core:</strong> The 5 dimensions (processes, extensibility, integration, data, operations) and the level-based model (A/B/C/D)</li>
+          <li>Extension types: in-app (key user + developer) vs. side-by-side (on BTP). Decision criteria.</li>
+          <li>SAP Application Extension Methodology — structured approach to choosing extension type</li>
+          <li>CAP vs. RAP: when to use Cloud Application Programming Model vs. RESTful ABAP Programming Model</li>
+          <li><strong>SAP Integration Suite deep dive:</strong> All 6 components, pre-built content, Edge Integration Cell</li>
+          <li><strong>ISA-M (Integration Solution Advisory Methodology):</strong> Integration domains × integration styles matrix. THE most heavily tested framework on the exam.</li>
+          <li><strong>Why this matters for the exam:</strong> This is the HIGHEST WEIGHT unit. Expect 30-40% of questions to draw from here.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="curriculum-item" onclick="toggleCurriculum(this)">
+      <div class="curriculum-head">
+        <span class="curriculum-num">U6</span>
+        <span class="curriculum-title">Data & Analytics, AI, and Automation</span>
+        <span class="curriculum-time">~42 min</span>
+        <span class="curriculum-arrow">▾</span>
+      </div>
+      <div class="curriculum-body">
+        <ul>
+          <li>SAP Datasphere architecture: spaces, connections, transformation flows, semantic layer</li>
+          <li>SAP Analytics Cloud: stories, models, planning, smart insights</li>
+          <li>Data and Analytics Advisory Methodology — structured approach for data architecture decisions</li>
+          <li>SAP AI Core + Generative AI Hub: model deployment, prompt management, grounding</li>
+          <li>Joule: embedding AI copilot in SAP applications; evolution toward agentic AI</li>
+          <li>SAP Build Process Automation: workflows, RPA bots, decision tables, process visibility</li>
+          <li><strong>Why this matters for the exam:</strong> Growing in importance as SAP pushes AI. Know the Data & Analytics Advisory Methodology.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="curriculum-item" onclick="toggleCurriculum(this)">
+      <div class="curriculum-head">
+        <span class="curriculum-num">U7</span>
+        <span class="curriculum-title">Costs and Commercial Models</span>
+        <span class="curriculum-time">~6 min</span>
+        <span class="curriculum-arrow">▾</span>
+      </div>
+      <div class="curriculum-body">
+        <ul>
+          <li>Three licensing paths: CPEA/BTPEA (prepaid credits) vs. PAYG (no commitment) vs. Free Tier (90+ services, no time limit)</li>
+          <li>Capacity Units vs. Cloud Credits: how consumption is measured and billed</li>
+          <li>Cost estimation with Discovery Center Estimator</li>
+          <li>Hidden costs: overage at full price, 3× for dev/QA/prod, annual escalation clauses</li>
+          <li><strong>Why this matters:</strong> Short unit but critical real-world knowledge. Commercial model choice is an architectural decision.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ SERVICES DEEP DIVE ════════════════════════ -->
+<section id="services">
+<div class="container">
+  <h4>Chapter 5</h4>
+  <h2>Key Services Deep Dive</h2>
+  <p>Master these services to think like a solution architect. Use the tabs to explore each domain.</p>
+
+  <div class="tabs mt-2" id="serviceTabs">
+    <button class="tab active" onclick="switchTab('serviceTabs','svc-integration')">Integration Suite</button>
+    <button class="tab" onclick="switchTab('serviceTabs','svc-build')">SAP Build</button>
+    <button class="tab" onclick="switchTab('serviceTabs','svc-hana')">HANA Cloud</button>
+    <button class="tab" onclick="switchTab('serviceTabs','svc-datasphere')">Datasphere & SAC</button>
+    <button class="tab" onclick="switchTab('serviceTabs','svc-ai')">AI Services</button>
+    <button class="tab" onclick="switchTab('serviceTabs','svc-identity')">Identity & Security</button>
+  </div>
+
+  <div class="tab-panel active" id="svc-integration">
+    <h3>SAP Integration Suite</h3>
+    <p class="lead">The integration backbone — 10,500+ pre-built flows, 160+ connectors, Gartner Leader 6 years running.</p>
+    <div class="card-grid mt-2">
+      <div class="card"><h3>Cloud Integration (CPI)</h3><p>Message-based, API-based, and event-based integration flows. Visual flow designer. The "workhorse" — handles A2A, B2B, and cloud-to-cloud patterns. Think of it as a managed Apache Camel with SAP adapters.</p></div>
+      <div class="card"><h3>API Management</h3><p>Proxify APIs with rate limiting, analytics, monetization, and developer portal. Like Apigee or Kong but integrated with SAP's API catalog. Required for exposing SAP APIs to third parties.</p></div>
+      <div class="card"><h3>Integration Advisor</h3><p>ML-powered B2B mapping tool. Accelerates EDI/EDIFACT/ANSI X12 mapping development by suggesting field mappings based on learned patterns. A time saver for supply chain integration.</p></div>
+      <div class="card"><h3>Event Mesh & Advanced Event Mesh</h3><p>Event Mesh: basic pub/sub for SAP events. Advanced Event Mesh (Solace-based): enterprise-grade event streaming across multi-cloud with guaranteed delivery, topic routing, and replay. Use AEM for mission-critical event-driven architectures.</p></div>
+      <div class="card"><h3>Edge Integration Cell</h3><p>Run integration flows on-premise or at the edge, managed centrally from the cloud. Solves data residency, latency, and compliance requirements. The bridge for "cloud management, on-premise execution."</p></div>
+      <div class="card"><h3>Open Connectors</h3><p>170+ pre-built connectors for non-SAP cloud apps (Salesforce, ServiceNow, Slack, etc.). Normalizes third-party APIs into a consistent REST interface. Useful for rapid integration without custom adapter development.</p></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="svc-build">
+    <h3>SAP Build</h3>
+    <p class="lead">From pro-code to no-code — the unified development and automation platform.</p>
+    <div class="card-grid mt-2">
+      <div class="card"><h3>SAP Build Code</h3><p>Pro-code development in SAP Business Application Studio with Joule AI code generation. CAP project scaffolding, OData service creation, SAPUI5/Fiori development. The "VS Code for SAP" with AI superpowers.</p></div>
+      <div class="card"><h3>Build Process Automation</h3><p>Workflow + RPA + Decision management in one service. Automate approvals, data extraction from PDFs (Document Information Extraction), and decision rules. Replaces SAP Workflow and iRPA as separate products.</p></div>
+      <div class="card"><h3>Build Work Zone</h3><p><strong>Standard:</strong> Fiori Launchpad in the cloud — role-based app access with federation. <strong>Advanced:</strong> Full digital workplace with workspaces, knowledge bases, cards, and collaboration. The "front door" for all SAP apps.</p></div>
+      <div class="card" style="border-color:var(--accent4);">
+        <h3>⚠️ Build Apps — Deprecated</h3>
+        <p>The no-code visual app builder was deprecated in March 2026. Capabilities are being consolidated into the unified SAP Build platform. Existing apps remain functional during the sunset period, but new projects should use Build Code or Fiori Elements.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="svc-hana">
+    <h3>SAP HANA Cloud</h3>
+    <p class="lead">The in-memory data foundation — now with vector engine for AI and knowledge graph.</p>
+    <div class="grid-2 mt-2">
+      <div>
+        <h3>Three-Tier Architecture</h3>
+        <p><strong>In-Memory DB:</strong> Columnar store with vector engine for RAG (retrieval-augmented generation) and knowledge graph engine. The "hot" tier for real-time queries and AI embeddings.</p>
+        <p class="mt-1"><strong>Data Lake Relational Engine:</strong> Disk-based columnar store for warm data. 10× cheaper than in-memory. Supports standard SQL. Good for historical data and large analytical datasets.</p>
+        <p class="mt-1"><strong>Data Lake Files:</strong> Object storage for raw files (CSV, Parquet, JSON). The "cold" tier. Cheapest option for staging and archival.</p>
+      </div>
+      <div>
+        <h3>Why Vector Engine Matters</h3>
+        <p>Traditional databases store structured data. Vector engines store <strong>embeddings</strong> — mathematical representations of text, images, or documents. This enables:</p>
+        <p class="mt-1">• <strong>Semantic search</strong> over enterprise documents</p>
+        <p>• <strong>RAG</strong> — grounding LLM responses in your actual SAP data</p>
+        <p>• <strong>Knowledge graphs</strong> — connecting entities across business processes</p>
+        <p class="mt-1">Having this built into HANA Cloud means you don't need a separate Pinecone/Weaviate for enterprise AI applications.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="svc-datasphere">
+    <h3>SAP Datasphere & Analytics Cloud</h3>
+    <p class="lead">Data fabric + BI/Planning — the "sense-making" layer for enterprise data.</p>
+    <div class="grid-2 mt-2">
+      <div>
+        <h3>SAP Datasphere</h3>
+        <p>A <strong>data fabric</strong> — not just a data warehouse. It connects to SAP and non-SAP systems, preserves SAP business semantics (cost centers, profit centers, org structures), and provides a semantic layer accessible by multiple tools.</p>
+        <p class="mt-1"><strong>Key concepts:</strong> Spaces (logical data areas), Connections (50+ sources), Transformation Flows, Graphical Views, and the Business Builder (no-code semantic modeling).</p>
+        <p class="mt-1"><strong>With Business Data Cloud (2025):</strong> Native Databricks integration with zero-copy data sharing over Delta Lake. You can query SAP data in Databricks and Databricks data in Datasphere without moving data.</p>
+      </div>
+      <div>
+        <h3>SAP Analytics Cloud (SAC)</h3>
+        <p>Unified <strong>BI + Planning + Predictive</strong> in one cloud service. Key differentiator: you can plan and analyze in the same tool (not separate Tableau + Anaplan).</p>
+        <p class="mt-1"><strong>Smart features:</strong> Smart Insights (automated anomaly detection), Smart Predict (automated ML), Just Ask (natural language queries), and embedded Joule for AI-assisted analysis.</p>
+        <p class="mt-1"><strong>Live vs. Import models:</strong> Live connects directly to HANA/BW without data duplication. Import brings data into SAC's in-memory engine. Choose based on data freshness vs. performance needs.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="svc-ai">
+    <h3>AI Services on BTP</h3>
+    <p class="lead">Infrastructure + models + copilot — AI with enterprise governance baked in.</p>
+    <div class="flow-diagram mt-2">
+      <div class="flow-box" style="border-color:var(--accent3); background:var(--accent3)10; color:var(--accent3);">SAP AI Core<br><small>Infrastructure</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent); background:var(--accent)10; color:var(--accent);">Gen AI Hub<br><small>Multi-LLM Access</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent5); background:var(--accent5)10; color:var(--accent5);">HANA Vector Engine<br><small>Grounding / RAG</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent4); background:var(--accent4)10; color:var(--accent4);">Joule Copilot<br><small>User Interface</small></div>
+    </div>
+    <p class="mt-2"><strong>Available LLMs via Gen AI Hub:</strong> GPT-4o (OpenAI), Gemini (Google), Llama (Meta), Claude (Anthropic), Titan (Amazon), Mistral, and SAP's own RPT-1 for predictive insights. All accessed through a unified API with prompt versioning, input/output filtering, and usage tracking.</p>
+  </div>
+
+  <div class="tab-panel" id="svc-identity">
+    <h3>Identity & Security Architecture</h3>
+    <p class="lead">The trust chain that secures everything on BTP.</p>
+    <div class="flow-diagram mt-2">
+      <div class="flow-box" style="border-color:var(--accent4); background:var(--accent4)10; color:var(--accent4);">Corporate IdP<br><small>(Entra ID, Okta)</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent3); background:var(--accent3)10; color:var(--accent3);">SAP IAS<br><small>Authentication</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent); background:var(--accent)10; color:var(--accent);">BTP Subaccount<br><small>Trust Config</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent5); background:var(--accent5)10; color:var(--accent5);">App (XSUAA)<br><small>Authorization</small></div>
+    </div>
+    <p class="mt-2"><strong>IAS</strong> handles authentication (who are you?). <strong>IPS</strong> handles provisioning (syncing users/groups across systems). <strong>XSUAA</strong> handles authorization (what can you do?) within BTP applications.</p>
+    <p><strong>Principal Propagation</strong> forwards the end user's identity to backend systems, so S/4HANA operations execute under the user's authorizations — not a generic technical user.</p>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ DEVELOPMENT ════════════════════════ -->
+<section id="development">
+<div class="container">
+  <h4>Chapter 6</h4>
+  <h2>Development Models & Clean Core</h2>
+
+  <div class="grid-2 mt-2">
+    <div>
+      <h3>CAP — Cloud Application Programming Model</h3>
+      <p>SAP's opinionated framework for building enterprise services. Think of it as "Rails/Django for SAP" — heavy convention over configuration.</p>
+      <p class="mt-1"><strong>Core idea:</strong> You write CDS (Core Data Services) files that declaratively define your data model and service layer. CAP generates the OData API, database schema, and Fiori UI annotations from this single source of truth.</p>
+      <p class="mt-1"><strong>100 lines of CDS</strong> replaces thousands of lines of manual OData service implementation. You only write custom logic via event handlers (before/on/after hooks).</p>
+      <p class="mt-1"><strong>Supports:</strong> Node.js or Java (Spring Boot). Database-agnostic: HANA, PostgreSQL, SQLite. Deploy to Cloud Foundry or Kyma. Built-in multitenancy, authentication, localization.</p>
+      <p class="mt-2" style="font-family:var(--mono); font-size:.8rem; background:var(--bg3); padding:1rem; border-radius:8px; color:var(--accent2);">
+        // Define a data model in CDS<br>
+        entity Books {<br>
+        &nbsp;&nbsp;key ID : UUID;<br>
+        &nbsp;&nbsp;title : String(100);<br>
+        &nbsp;&nbsp;author : Association to Authors;<br>
+        &nbsp;&nbsp;price : Decimal(9,2);<br>
+        }<br><br>
+        // Expose as OData service<br>
+        service CatalogService {<br>
+        &nbsp;&nbsp;entity Books as projection on my.Books;<br>
+        }
+      </p>
+    </div>
+    <div>
+      <h3>Clean Core Extensibility</h3>
+      <p><strong>The fundamental principle:</strong> Extensions should never break upgrades, and upgrades should never break extensions.</p>
+
+      <h4 class="mt-2" style="color:var(--text);">Extension Decision Tree</h4>
+      <div id="extDecisionTree"></div>
+
+      <h4 class="mt-3" style="color:var(--text);">Clean Core Levels</h4>
+      <div style="display:flex; flex-direction:column; gap:.5rem; margin-top:.5rem;">
+        <div style="display:flex; align-items:center; gap:.75rem;">
+          <span style="background:var(--accent5); color:#fff; padding:.2rem .6rem; border-radius:4px; font-family:var(--mono); font-size:.8rem; font-weight:600; min-width:3rem; text-align:center;">A</span>
+          <span style="font-size:.88rem;">ABAP Cloud + released APIs only. Cleanest. Future-proof.</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:.75rem;">
+          <span style="background:var(--accent2); color:#fff; padding:.2rem .6rem; border-radius:4px; font-family:var(--mono); font-size:.8rem; font-weight:600; min-width:3rem; text-align:center;">B</span>
+          <span style="font-size:.88rem;">Classic APIs (BAPIs). Broader scope but upgrade-stable.</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:.75rem;">
+          <span style="background:var(--accent4); color:#fff; padding:.2rem .6rem; border-radius:4px; font-family:var(--mono); font-size:.8rem; font-weight:600; min-width:3rem; text-align:center;">C</span>
+          <span style="font-size:.88rem;">SAP internal objects accessed. Manageable risk.</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:.75rem;">
+          <span style="background:var(--accent6); color:#fff; padding:.2rem .6rem; border-radius:4px; font-family:var(--mono); font-size:.8rem; font-weight:600; min-width:3rem; text-align:center;">D</span>
+          <span style="font-size:.88rem;">Not-recommended objects. Highest technical debt.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ INTEGRATION PATTERNS ════════════════════════ -->
+<section id="integration">
+<div class="container">
+  <h4>Chapter 7</h4>
+  <h2>Integration Patterns & Event-Driven Architecture</h2>
+
+  <h3 class="mt-3">ISA-M: Integration Domains × Styles</h3>
+  <p>The Integration Solution Advisory Methodology maps <em>what needs to integrate</em> (domains) against <em>how it should integrate</em> (styles). This matrix is the most heavily tested concept on the certification exam.</p>
+  <div style="overflow-x:auto;" class="mt-2">
+    <table class="comp-table">
+      <thead>
+        <tr><th>Integration Style ↓ / Domain →</th><th>On-Premise to On-Premise (A2A)</th><th>Cloud to Cloud</th><th>Cloud to On-Premise (Hybrid)</th><th>B2B / B2G</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Process Integration</strong><br><small style="color:var(--text-muted);">Orchestrated, synchronous/async flows</small></td><td>CPI via Cloud Connector</td><td>CPI direct</td><td>CPI + Cloud Connector</td><td>CPI + Trading Partner Mgmt</td></tr>
+        <tr><td><strong>Data Integration</strong><br><small style="color:var(--text-muted);">Bulk data replication, ETL</small></td><td>Datasphere / SLT</td><td>Datasphere connections</td><td>Datasphere + Cloud Connector</td><td>CPI batch iFlows</td></tr>
+        <tr><td><strong>Event Integration</strong><br><small style="color:var(--text-muted);">Publish/subscribe, async notifications</small></td><td>AEM</td><td>Event Mesh / AEM</td><td>AEM + Cloud Connector</td><td>Rare</td></tr>
+        <tr><td><strong>Thing Integration</strong><br><small style="color:var(--text-muted);">IoT device data</small></td><td>Edge Integration Cell</td><td>CPI + IoT adapters</td><td>Edge Integration Cell</td><td>N/A</td></tr>
+        <tr><td><strong>User Integration</strong><br><small style="color:var(--text-muted);">UI embedding, mashups</small></td><td>Build Work Zone</td><td>Build Work Zone</td><td>Build Work Zone federation</td><td>N/A</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-3">
+    <h3>Event-Driven Pattern: "Notify then Fetch"</h3>
+    <div class="flow-diagram mt-2">
+      <div class="flow-box" style="border-color:var(--accent5); background:var(--accent5)10; color:var(--accent5);">S/4HANA<br><small>Business Event</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent2); background:var(--accent2)10; color:var(--accent2);">Event Mesh<br><small>CloudEvents 1.0</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent3); background:var(--accent3)10; color:var(--accent3);">BTP App<br><small>Receives notification</small></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box" style="border-color:var(--accent4); background:var(--accent4)10; color:var(--accent4);">OData API Call<br><small>Fetch full details</small></div>
+    </div>
+    <p class="mt-2 text-sm"><strong>Why notify-then-fetch?</strong> Events carry minimal payload (just "PurchaseOrder 12345 was created"). The consumer calls back to S/4HANA's OData API for full details. This ensures data consistency — you always get the latest state, not a potentially stale snapshot from the event payload.</p>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ COMMERCIAL ════════════════════════ -->
+<section id="commercial">
+<div class="container">
+  <h4>Chapter 8</h4>
+  <h2>Commercial Models & Cost Architecture</h2>
+
+  <div class="tabs mt-2" id="commercialTabs">
+    <button class="tab active" onclick="switchTab('commercialTabs','cm-btpea')">BTPEA / CPEA</button>
+    <button class="tab" onclick="switchTab('commercialTabs','cm-payg')">Pay-As-You-Go</button>
+    <button class="tab" onclick="switchTab('commercialTabs','cm-free')">Free Tier</button>
+    <button class="tab" onclick="switchTab('commercialTabs','cm-strategy')">Cost Strategy</button>
+  </div>
+
+  <div class="tab-panel active" id="cm-btpea">
+    <h3>BTPEA / CPEA — Prepaid Credit Pool</h3>
+    <p>Your organization pre-purchases a pool of cloud credits (minimum ~$10K–$20K/year). Any eligible BTP service draws from this shared pool monthly. Volume discounts vs. PAYG pricing.</p>
+    <div class="card-grid mt-2">
+      <div class="card"><h3>Pros</h3><p>Volume discounts (often 15-30% off list). Flexibility to try new services without separate procurement. One contract covers everything. Automatic entitlements to all eligible services.</p></div>
+      <div class="card"><h3>Cons</h3><p>Unused credits expire at contract end (no standard rollover). Overage charges at full list price. Requires accurate capacity planning. Annual 3-5% escalation clauses common.</p></div>
+    </div>
+    <p class="mt-2 text-sm"><strong>BTPEA vs. CPEA:</strong> BTPEA (April 2024+) is the successor. Expanded scope includes SAP Analytics Cloud. All new services and innovations only added to BTPEA. New customers get BTPEA; existing CPEA customers should plan migration.</p>
+  </div>
+
+  <div class="tab-panel" id="cm-payg">
+    <h3>Pay-As-You-Go — Zero Commitment</h3>
+    <p>No upfront commitment. Pay monthly at standard list prices. Ideal for proof-of-concepts, pilots, and unpredictable workloads.</p>
+    <p class="mt-1"><strong>Key advantage:</strong> Can be seamlessly converted to CPEA/BTPEA while preserving all services, subaccounts, and data. SAP explicitly encourages "try before you commit."</p>
+  </div>
+
+  <div class="tab-panel" id="cm-free">
+    <h3>Free Tier — 90+ Services, No Time Limit</h3>
+    <p>Limited capacity on 90+ services within productive accounts (PAYG or BTPEA). Unlike the old trial (90 days), free tier has <strong>no expiration</strong> and can be upgraded to paid plans.</p>
+    <p class="mt-1"><strong>Gotcha:</strong> HANA Cloud free tier databases auto-stop every night. Must be manually restarted. Not suitable for "always-on" scenarios.</p>
+    <p class="mt-1"><strong>Best use:</strong> Development, learning, and PoC environments. Get hands-on without any cost.</p>
+  </div>
+
+  <div class="tab-panel" id="cm-strategy">
+    <h3>Cost Optimization Strategies</h3>
+    <div class="card-grid mt-2">
+      <div class="card"><h3>Right-Size by Stage</h3><p>Free tier for dev. PAYG for QA with usage controls. BTPEA for production with negotiated discounts. Every tenant (dev/QA/prod) costs separately — plan for 3× base cost.</p></div>
+      <div class="card"><h3>Stop Non-Prod Instances</h3><p>Shut down HANA Cloud and Kyma in dev/QA on nights and weekends. Use BTP CLI scripts or CI/CD pipelines to automate start/stop schedules. 60-70% savings on non-prod compute.</p></div>
+      <div class="card"><h3>Negotiate Smart</h3><p>Request credit rollover provisions. Cap overage rates at contract rates (not list). Lock in multi-year pricing to avoid annual escalation. Consider hyperscaler marketplace for committed-spend counting.</p></div>
+      <div class="card"><h3>Monitor Continuously</h3><p>Use SAP's open-source BTP Resource Consumption Monitor (GitHub). Set alerts at 80% credit utilization. Review monthly consumption reports in BTP Cockpit. Track cost per integration flow, per HANA GB.</p></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ DECISION TOOLS ════════════════════════ -->
+<section id="decisions">
+<div class="container">
+  <h4>Chapter 9</h4>
+  <h2>Architect's Decision Tools</h2>
+  <p>Interactive decision trees for the choices solution architects face most often.</p>
+
+  <h3 class="mt-3">Should You Use SAP BTP?</h3>
+  <div id="btpDecisionTree" class="mt-2"></div>
+
+  <div class="divider"></div>
+
+  <h3>BTP vs. Alternatives — Quick Reference</h3>
+  <div style="overflow-x:auto;" class="mt-2">
+    <table class="comp-table">
+      <thead><tr><th>Scenario</th><th>Recommendation</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Extend S/4HANA Cloud</td><td style="color:var(--accent);">BTP (mandatory)</td><td>Only approved platform for clean core side-by-side extensions</td></tr>
+        <tr><td>SAP-to-SAP integration</td><td style="color:var(--accent);">BTP Integration Suite</td><td>10,500+ pre-built flows. Building these on MuleSoft takes months.</td></tr>
+        <tr><td>Generic web app (no SAP data)</td><td style="color:var(--accent4);">AWS / Azure / GCP</td><td>Cheaper, more flexible, broader community. BTP adds overhead with no SAP-specific benefit.</td></tr>
+        <tr><td>Pure data engineering / ML</td><td style="color:var(--accent4);">Databricks / Snowflake / BigQuery</td><td>Superior price-performance, richer ecosystem. Use Datasphere only if SAP semantic preservation is critical.</td></tr>
+        <tr><td>Citizen automation of SAP processes</td><td style="color:var(--accent);">SAP Build Process Automation</td><td>Understands SAP business objects natively. Power Automate can work but needs custom connectors.</td></tr>
+        <tr><td>AI on enterprise SAP data</td><td style="color:var(--accent);">BTP AI Core + Gen AI Hub</td><td>Governed access, HANA vector grounding, Joule integration. Custom OpenAI works but lacks SAP context.</td></tr>
+        <tr><td>Multi-vendor iPaaS</td><td style="color:var(--accent4);">MuleSoft / Workato</td><td>Broader third-party support. Use when SAP is just one of many integration targets.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ QUIZ ════════════════════════ -->
+<section id="quiz">
+<div class="container">
+  <h4>Chapter 10</h4>
+  <h2>Knowledge Check</h2>
+  <p>Test your understanding with these exam-style questions. Click an answer to reveal the explanation.</p>
+
+  <div class="mt-3">
+    <div class="quiz-card" id="q1">
+      <div class="quiz-q">1. A customer wants to add a custom field to the Sales Order in S/4HANA Cloud, Public Edition. No complex logic is needed. Which extensibility approach should a solution architect recommend?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,false)">Side-by-side extension on BTP using CAP</div>
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,true)">Key User Extensibility (in-app)</div>
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,false)">Developer Extensibility using RAP in ABAP Environment</div>
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,false)">Classic modification with access key</div>
+      </div>
+      <div class="quiz-explain" id="q1-explain">For simple custom fields without complex logic, Key User Extensibility is the lightest-weight approach. It requires no coding, runs in-app, and follows clean core Level A principles. Side-by-side would be over-engineering; developer extensibility is for more complex scenarios; classic modifications are not available in S/4HANA Cloud Public Edition.</div>
+    </div>
+
+    <div class="quiz-card" id="q2">
+      <div class="quiz-q">2. An architect needs to connect a BTP application to an on-premise SAP ECC system. Which connectivity path is correct?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,false)">BTP App → Private Link → ECC</div>
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,false)">BTP App → Destination Service (Internet proxy) → ECC</div>
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,true)">BTP App → Destination Service → Connectivity Service → Cloud Connector → ECC</div>
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,false)">BTP App → API Management → ECC</div>
+      </div>
+      <div class="quiz-explain" id="q2-explain">The correct on-premise connectivity chain is: Destination Service (stores connection config) → Connectivity Service (routes to Cloud Connector) → Cloud Connector (secure reverse-invoke TLS tunnel) → On-premise system. Private Link is for hyperscaler-private connectivity, not general on-premise. Direct internet access to on-premise systems would be a security risk.</div>
+    </div>
+
+    <div class="quiz-card" id="q3">
+      <div class="quiz-q">3. In the ISA-M framework, which integration style would you use for real-time order status notifications from S/4HANA Cloud to a custom BTP application?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,false)">Process Integration (synchronous API call)</div>
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,true)">Event Integration (publish/subscribe)</div>
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,false)">Data Integration (batch replication)</div>
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,false)">Thing Integration (IoT)</div>
+      </div>
+      <div class="quiz-explain" id="q3-explain">Real-time notifications are the textbook use case for Event Integration using SAP Event Mesh or Advanced Event Mesh. S/4HANA publishes 600+ business events natively via the Enterprise Event Enablement framework. The "notify-then-fetch" pattern applies: receive a lightweight event, then call back via OData API for full details. Process integration would require polling; data integration is for bulk movement.</div>
+    </div>
+
+    <div class="quiz-card" id="q4">
+      <div class="quiz-q">4. A customer has unpredictable BTP usage and wants to pilot three services before committing. Which commercial model should they start with?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,false)">BTPEA with minimum commitment</div>
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,true)">Pay-As-You-Go (PAYG)</div>
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,false)">Individual service subscriptions</div>
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,false)">Free Tier only</div>
+      </div>
+      <div class="quiz-explain" id="q4-explain">PAYG is designed for exactly this scenario — zero upfront commitment, monthly billing, and seamless conversion to BTPEA later while preserving all services, subaccounts, and data. Free Tier alone is too limited for piloting real workloads. BTPEA requires commitment upfront. Individual subscriptions lack the flexibility to try multiple services easily.</div>
+    </div>
+
+    <div class="quiz-card" id="q5">
+      <div class="quiz-q">5. Which SAP BTP runtime would you recommend for a team that wants to deploy containerized microservices with autoscaling, service mesh, and serverless functions?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,false)">Cloud Foundry</div>
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,true)">Kyma</div>
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,false)">ABAP Environment</div>
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,false)">SAP Build Code</div>
+      </div>
+      <div class="quiz-explain" id="q5-explain">Kyma is the fully managed Kubernetes runtime that provides all three: container orchestration with autoscaling (HPA/VPA), Istio service mesh, and serverless Kyma Functions. Cloud Foundry uses buildpacks (not containers directly) and lacks service mesh. ABAP Environment is for ABAP developers only. SAP Build Code is an IDE, not a runtime.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════════ FOOTER ════════════════════════ -->
+<footer style="padding:3rem 0; text-align:center; border-top:1px solid var(--border);">
+  <div class="container">
+    <p style="font-size:.85rem;">SAP BTP Solution Architect Interactive Learning Platform</p>
+    <p style="font-size:.75rem; margin-top:.5rem;">Based on the official SAP Learning curriculum. Sources: SAP Learning, SAP Community, SAP PRESS, SAP Discovery Center.</p>
+  </div>
+</footer>
+
+<script>
+// ── Progress Bar ──
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+});
+
+// ── Active Nav ──
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('#navLinks a');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`#navLinks a[href="#${e.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+sections.forEach(s => obs.observe(s));
+
+// ── Tabs ──
+function switchTab(tabGroupId, panelId) {
+  const group = document.getElementById(tabGroupId);
+  group.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  const container = group.parentElement;
+  container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ── Pillars ──
+function togglePillar(el) {
+  el.classList.toggle('open');
+}
+
+// ── Curriculum ──
+function toggleCurriculum(el) {
+  el.classList.toggle('open');
+}
+
+// ── Quiz ──
+function checkQuiz(qId, el, isCorrect) {
+  const card = document.getElementById(qId);
+  if (card.classList.contains('answered')) return;
+  card.classList.add('answered');
+  card.querySelectorAll('.quiz-opt').forEach(o => o.classList.add('answered'));
+  el.classList.add(isCorrect ? 'correct' : 'wrong');
+  if (!isCorrect) {
+    card.querySelectorAll('.quiz-opt').forEach((o, i) => {
+      if (o !== el) o.style.opacity = '.5';
+    });
+    // highlight correct
+    const opts = card.querySelectorAll('.quiz-opt');
+    // find correct by re-checking
+  }
+  document.getElementById(qId + '-explain').classList.add('show');
+}
+
+// ── Decision Trees ──
+function renderDecisionTree(containerId, tree) {
+  const container = document.getElementById(containerId);
+  let currentNode = tree;
+
+  function render(node) {
+    container.innerHTML = '';
+    const dt = document.createElement('div');
+    dt.className = 'decision-tree';
+
+    if (node.result) {
+      const res = document.createElement('div');
+      res.className = 'dt-result';
+      res.innerHTML = `<h3>${node.result}</h3><p>${node.explanation}</p>`;
+      const reset = document.createElement('button');
+      reset.className = 'dt-reset';
+      reset.textContent = '↺ Start Over';
+      reset.onclick = () => render(tree);
+      res.appendChild(reset);
+      dt.appendChild(res);
+    } else {
+      const q = document.createElement('div');
+      q.className = 'dt-question';
+      q.textContent = node.question;
+      dt.appendChild(q);
+
+      const opts = document.createElement('div');
+      opts.className = 'dt-options';
+      node.options.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = 'dt-option';
+        btn.textContent = opt.label;
+        btn.onclick = () => {
+          btn.classList.add('selected');
+          setTimeout(() => render(opt.next), 300);
+        };
+        opts.appendChild(btn);
+      });
+      dt.appendChild(opts);
+    }
+    container.appendChild(dt);
+  }
+  render(tree);
+}
+
+// BTP Decision Tree
+renderDecisionTree('btpDecisionTree', {
+  question: 'Does your organization run SAP ERP (ECC or S/4HANA)?',
+  options: [
+    { label: 'Yes — S/4HANA Cloud', next: {
+      result: '✅ BTP is strongly recommended (nearly mandatory)',
+      explanation: 'S/4HANA Cloud Public Edition requires BTP for side-by-side extensions. Clean core extensibility, Fiori launchpad (Build Work Zone), and AI innovations (Joule) all run on BTP. It comes bundled with RISE with SAP.'
+    }},
+    { label: 'Yes — S/4HANA On-Premise or ECC', next: {
+      question: 'Are you planning to move to S/4HANA Cloud within 2-3 years?',
+      options: [
+        { label: 'Yes, migrating soon', next: {
+          result: '✅ Start with BTP now',
+          explanation: 'Build new extensions on BTP from day one. This ensures clean core compliance when you migrate. Use Cloud Connector for on-premise connectivity during transition. Your BTP investments carry forward.'
+        }},
+        { label: 'No, staying on-premise', next: {
+          question: 'Do you need SAP-specific integration (PI/PO replacement, SAP-to-SAP flows)?',
+          options: [
+            { label: 'Yes', next: { result: '✅ BTP Integration Suite', explanation: 'Integration Suite replaces PI/PO with 10,500+ pre-built flows. Edge Integration Cell lets you run flows on-premise with cloud management. This is the clear modernization path.' }},
+            { label: 'No, mostly non-SAP integration', next: { result: '⚖️ Consider MuleSoft or cloud-native', explanation: 'If SAP is just one of many targets, MuleSoft or cloud-native integration (AWS Step Functions, Azure Logic Apps) may offer broader connector ecosystems at lower cost.' }}
+          ]
+        }}
+      ]
+    }},
+    { label: 'No SAP ERP at all', next: {
+      question: 'Do you use other SAP cloud products (SuccessFactors, Ariba, Concur)?',
+      options: [
+        { label: 'Yes', next: { result: '⚖️ BTP for SAP cloud integration', explanation: 'Integration Suite connects SAP cloud products well. But evaluate whether cloud-native alternatives (AWS, Azure) might be simpler for your non-ERP landscape. BTP\'s value scales with SAP footprint.' }},
+        { label: 'No', next: { result: '❌ Skip BTP — use cloud-native', explanation: 'Without SAP products, BTP\'s core value proposition (SAP-specific integration, clean core extensibility, SAP business context for AI) doesn\'t apply. Use AWS, Azure, or GCP directly for better price-performance and larger talent pools.' }}
+      ]
+    }}
+  ]
+});
+
+// Extension Decision Tree
+renderDecisionTree('extDecisionTree', {
+  question: 'Is this a configuration change or a code change?',
+  options: [
+    { label: 'Configuration only', next: {
+      result: '⚙️ SAP Best Practices / Customizing',
+      explanation: 'Always start with configuration. Check if SAP Best Practices or standard customizing (IMG) can fulfill the requirement before writing any code.'
+    }},
+    { label: 'Needs code or custom UI', next: {
+      question: 'Does it need tight integration with S/4HANA core transactions?',
+      options: [
+        { label: 'Yes — embedded in core process', next: {
+          question: 'How complex is the logic?',
+          options: [
+            { label: 'Simple (fields, validations)', next: { result: '🧑‍💼 Key User Extensibility (In-App)', explanation: 'No-code, for business experts. Custom fields, custom logic (BRF+), custom CDS views. Clean Core Level A. Available directly in S/4HANA Cloud without developer tools.' }},
+            { label: 'Complex (custom entities, RAP)', next: { result: '👨‍💻 Developer Extensibility (In-App ABAP Cloud)', explanation: 'Uses RAP (RESTful ABAP Programming Model) in Eclipse ADT. Custom ABAP objects with released APIs. Clean Core Level A. For when key user tools aren\'t powerful enough but the extension must live inside S/4HANA.' }}
+          ]
+        }},
+        { label: 'No — standalone or loosely coupled', next: {
+          result: '🌐 Side-by-Side Extension on BTP',
+          explanation: 'Build on Cloud Foundry or Kyma using CAP. Communicates with S/4HANA via APIs and events. Completely decoupled from S/4HANA lifecycle. Best for new apps, third-party integration, complex business logic, or when the extension serves multiple backend systems.'
+        }}
+      ]
+    }}
+  ]
+});
+</script>
+</body>
+</html>

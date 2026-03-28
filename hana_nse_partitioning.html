@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP HANA 2.0 SP8 — NSE & Partitioning Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#0a0e17;--bg-panel:#111827;--bg-card:#1a2332;--bg-elevated:#1f2b3d;
+  --border:#2a3a52;--border-bright:#3b5278;
+  --text-primary:#e2e8f0;--text-secondary:#94a3b8;--text-dim:#64748b;
+  --accent-cyan:#22d3ee;--accent-blue:#3b82f6;--accent-amber:#f59e0b;
+  --accent-green:#10b981;--accent-rose:#f43f5e;--accent-violet:#8b5cf6;
+  --accent-cyan-dim:rgba(34,211,238,.12);--accent-blue-dim:rgba(59,130,246,.1);
+  --accent-amber-dim:rgba(245,158,11,.1);--accent-green-dim:rgba(16,185,129,.1);
+  --accent-rose-dim:rgba(244,63,94,.1);
+  --glow-cyan:0 0 20px rgba(34,211,238,.15);--glow-blue:0 0 20px rgba(59,130,246,.15);
+  --radius:8px;--radius-lg:12px;
+  --font-mono:'JetBrains Mono',monospace;--font-sans:'DM Sans',sans-serif;
+  --font-display:'Playfair Display',serif;
+}
+html{scroll-behavior:smooth;font-size:15px}
+body{background:var(--bg-deep);color:var(--text-primary);font-family:var(--font-sans);
+  line-height:1.7;overflow-x:hidden;min-height:100vh}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg-deep)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-bright)}
+
+/* ═══ HEADER ═══ */
+.hero{position:relative;padding:3rem 2rem 2.5rem;overflow:hidden;
+  border-bottom:1px solid var(--border);background:linear-gradient(135deg,#0a0e17 0%,#111827 50%,#0f172a 100%)}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:radial-gradient(ellipse at 30% 20%,rgba(34,211,238,.06) 0%,transparent 60%),
+  radial-gradient(ellipse at 70% 80%,rgba(59,130,246,.04) 0%,transparent 50%);pointer-events:none}
+.hero-grid{position:absolute;top:0;left:0;right:0;bottom:0;
+  background-image:linear-gradient(rgba(42,58,82,.15) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(42,58,82,.15) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none}
+.hero-content{position:relative;max-width:1200px;margin:0 auto}
+.hero-label{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--accent-cyan);margin-bottom:.6rem;
+  display:flex;align-items:center;gap:.5rem}
+.hero-label::before{content:'';width:20px;height:1px;background:var(--accent-cyan)}
+.hero h1{font-family:var(--font-display);font-size:2.6rem;font-weight:900;
+  line-height:1.15;letter-spacing:-.02em;margin-bottom:.5rem;
+  background:linear-gradient(135deg,#e2e8f0 30%,#22d3ee 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:.95rem;color:var(--text-secondary);max-width:600px}
+.version-badge{display:inline-flex;align-items:center;gap:.4rem;
+  font-family:var(--font-mono);font-size:.7rem;padding:.25rem .6rem;
+  background:var(--accent-cyan-dim);border:1px solid rgba(34,211,238,.25);
+  border-radius:20px;color:var(--accent-cyan);margin-top:.8rem}
+.version-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--accent-cyan);
+  animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ═══ NAV ═══ */
+.nav-bar{position:sticky;top:0;z-index:100;background:rgba(10,14,23,.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;gap:0;overflow-x:auto}
+.nav-btn{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.06em;
+  padding:.85rem 1.2rem;color:var(--text-dim);cursor:pointer;border:none;
+  background:none;white-space:nowrap;position:relative;transition:color .2s}
+.nav-btn:hover{color:var(--text-secondary)}
+.nav-btn.active{color:var(--accent-cyan)}
+.nav-btn.active::after{content:'';position:absolute;bottom:0;left:.5rem;right:.5rem;
+  height:2px;background:var(--accent-cyan);border-radius:1px}
+
+/* ═══ MAIN ═══ */
+.main{max-width:1200px;margin:0 auto;padding:2rem}
+.section{display:none;animation:fadeUp .4s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ SECTION HEADERS ═══ */
+.section-head{margin-bottom:2rem}
+.section-head h2{font-family:var(--font-display);font-size:1.8rem;font-weight:700;
+  margin-bottom:.3rem}
+.section-head p{color:var(--text-secondary);font-size:.9rem}
+.section-tag{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--accent-amber);margin-bottom:.4rem}
+
+/* ═══ CARDS ═══ */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:1.5rem;margin-bottom:1.2rem;transition:border-color .25s}
+.card:hover{border-color:var(--border-bright)}
+.card-header{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+.card-icon{width:32px;height:32px;border-radius:var(--radius);display:flex;
+  align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.card-icon.cyan{background:var(--accent-cyan-dim);color:var(--accent-cyan)}
+.card-icon.blue{background:var(--accent-blue-dim);color:var(--accent-blue)}
+.card-icon.amber{background:var(--accent-amber-dim);color:var(--accent-amber)}
+.card-icon.green{background:var(--accent-green-dim);color:var(--accent-green)}
+.card-icon.rose{background:var(--accent-rose-dim);color:var(--accent-rose)}
+.card h3{font-size:1rem;font-weight:600}
+.card h4{font-size:.85rem;font-weight:600;margin-bottom:.5rem;color:var(--accent-cyan)}
+
+/* ═══ GRID LAYOUTS ═══ */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* ═══ TIER VISUAL ═══ */
+.tier-stack{display:flex;flex-direction:column;gap:0;margin:1.5rem 0}
+.tier{padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem;
+  position:relative;border-left:3px solid}
+.tier-hot{background:linear-gradient(90deg,rgba(244,63,94,.08),transparent);
+  border-color:var(--accent-rose)}
+.tier-warm{background:linear-gradient(90deg,rgba(245,158,11,.08),transparent);
+  border-color:var(--accent-amber)}
+.tier-cold{background:linear-gradient(90deg,rgba(59,130,246,.06),transparent);
+  border-color:var(--accent-blue)}
+.tier-label{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.1em;
+  text-transform:uppercase;min-width:55px}
+.tier-hot .tier-label{color:var(--accent-rose)}
+.tier-warm .tier-label{color:var(--accent-amber)}
+.tier-cold .tier-label{color:var(--accent-blue)}
+.tier-desc{font-size:.85rem;color:var(--text-secondary);flex:1}
+.tier-tech{font-family:var(--font-mono);font-size:.7rem;color:var(--text-dim);
+  background:var(--bg-deep);padding:.2rem .5rem;border-radius:4px;white-space:nowrap}
+
+/* ═══ FLOW / ARCHITECTURE DIAGRAMS ═══ */
+.arch-diagram{background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:2rem;margin:1.5rem 0;overflow-x:auto}
+.arch-row{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.arch-box{padding:.8rem 1.2rem;border-radius:var(--radius);font-family:var(--font-mono);
+  font-size:.75rem;text-align:center;min-width:110px;border:1px solid;position:relative}
+.arch-box.hot{background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.3);color:var(--accent-rose)}
+.arch-box.warm{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--accent-amber)}
+.arch-box.cold{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25);color:var(--accent-blue)}
+.arch-box.cache{background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.25);color:var(--accent-cyan)}
+.arch-box.disk{background:rgba(139,92,246,.08);border-color:rgba(139,92,246,.25);color:var(--accent-violet)}
+.arch-arrow{color:var(--text-dim);font-size:1.2rem}
+.arch-arrow-down{text-align:center;color:var(--text-dim);font-size:1rem;margin:.3rem 0}
+.arch-label{font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);
+  text-align:center;letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem}
+
+/* ═══ SQL BLOCKS ═══ */
+.sql-block{position:relative;margin:1rem 0;border-radius:var(--radius);overflow:hidden;
+  border:1px solid var(--border)}
+.sql-header{display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 1rem;background:var(--bg-elevated);border-bottom:1px solid var(--border)}
+.sql-title{font-family:var(--font-mono);font-size:.7rem;color:var(--text-dim);
+  letter-spacing:.05em;text-transform:uppercase}
+.sql-copy{font-family:var(--font-mono);font-size:.65rem;padding:.25rem .6rem;
+  background:var(--bg-deep);border:1px solid var(--border);border-radius:4px;
+  color:var(--text-dim);cursor:pointer;transition:all .2s}
+.sql-copy:hover{border-color:var(--accent-cyan);color:var(--accent-cyan)}
+.sql-copy.copied{border-color:var(--accent-green);color:var(--accent-green)}
+pre.sql-code{margin:0;padding:1rem 1.2rem;background:var(--bg-deep);
+  font-family:var(--font-mono);font-size:.78rem;line-height:1.65;
+  overflow-x:auto;color:var(--text-secondary);tab-size:4}
+pre.sql-code .kw{color:var(--accent-cyan);font-weight:500}
+pre.sql-code .fn{color:var(--accent-amber)}
+pre.sql-code .str{color:var(--accent-green)}
+pre.sql-code .cm{color:var(--text-dim);font-style:italic}
+pre.sql-code .num{color:var(--accent-rose)}
+pre.sql-code .op{color:var(--accent-violet)}
+
+/* ═══ TABS (inner) ═══ */
+.inner-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.2rem}
+.inner-tab{font-family:var(--font-mono);font-size:.72rem;padding:.65rem 1rem;
+  color:var(--text-dim);cursor:pointer;border:none;background:none;position:relative;
+  transition:color .2s}
+.inner-tab:hover{color:var(--text-secondary)}
+.inner-tab.active{color:var(--accent-amber)}
+.inner-tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;
+  height:2px;background:var(--accent-amber)}
+.tab-pane{display:none;animation:fadeUp .3s ease}
+.tab-pane.active{display:block}
+
+/* ═══ COMPARISON TABLE ═══ */
+.comp-table{width:100%;border-collapse:collapse;font-size:.82rem;margin:1rem 0}
+.comp-table th{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;padding:.7rem 1rem;
+  background:var(--bg-elevated);border-bottom:2px solid var(--border);color:var(--text-dim)}
+.comp-table td{padding:.65rem 1rem;border-bottom:1px solid var(--border);
+  color:var(--text-secondary);vertical-align:top}
+.comp-table tr:hover td{background:rgba(34,211,238,.02)}
+.comp-table .yes{color:var(--accent-green);font-weight:500}
+.comp-table .no{color:var(--accent-rose);font-weight:500}
+.comp-table .mono{font-family:var(--font-mono);font-size:.75rem}
+
+/* ═══ PARAM TABLE ═══ */
+.param-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:1rem 0}
+.param-table th{font-family:var(--font-mono);font-size:.65rem;letter-spacing:.08em;
+  text-transform:uppercase;text-align:left;padding:.6rem .8rem;
+  background:var(--bg-elevated);border-bottom:2px solid var(--border);color:var(--text-dim);
+  white-space:nowrap}
+.param-table td{padding:.55rem .8rem;border-bottom:1px solid rgba(42,58,82,.5);
+  color:var(--text-secondary);vertical-align:top}
+.param-table tr:hover td{background:rgba(34,211,238,.02)}
+.param-table code{font-family:var(--font-mono);font-size:.72rem;padding:.1rem .35rem;
+  background:var(--bg-deep);border-radius:3px;color:var(--accent-cyan);white-space:nowrap}
+
+/* ═══ DECISION TREE ═══ */
+.decision-tree{background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:2rem;margin:1.5rem 0}
+.dt-node{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1rem 1.2rem;margin:0 auto;max-width:480px;text-align:center;
+  transition:all .3s;position:relative}
+.dt-node.highlight{border-color:var(--accent-cyan);box-shadow:var(--glow-cyan)}
+.dt-question{font-size:.9rem;font-weight:500;margin-bottom:.8rem}
+.dt-choices{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.dt-btn{font-family:var(--font-mono);font-size:.72rem;padding:.45rem .9rem;
+  border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-elevated);
+  color:var(--text-secondary);cursor:pointer;transition:all .2s}
+.dt-btn:hover{border-color:var(--accent-cyan);color:var(--accent-cyan);
+  background:var(--accent-cyan-dim)}
+.dt-result{background:var(--bg-card);border:2px solid var(--accent-green);
+  border-radius:var(--radius-lg);padding:1.2rem 1.5rem;max-width:520px;
+  margin:1rem auto 0;animation:fadeUp .3s ease}
+.dt-result h4{color:var(--accent-green);font-size:.9rem;margin-bottom:.4rem}
+.dt-result p{font-size:.82rem;color:var(--text-secondary)}
+.dt-reset{font-family:var(--font-mono);font-size:.68rem;padding:.35rem .7rem;
+  border:1px solid var(--border);border-radius:4px;background:none;color:var(--text-dim);
+  cursor:pointer;margin-top:1rem;display:inline-block;transition:all .2s}
+.dt-reset:hover{border-color:var(--accent-rose);color:var(--accent-rose)}
+
+/* ═══ BUFFER CACHE SIMULATOR ═══ */
+.sim-container{background:var(--bg-deep);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:1.5rem;margin:1.5rem 0}
+.sim-controls{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:end;margin-bottom:1.2rem}
+.sim-field{display:flex;flex-direction:column;gap:.3rem}
+.sim-field label{font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);
+  letter-spacing:.06em;text-transform:uppercase}
+.sim-field input,.sim-field select{font-family:var(--font-mono);font-size:.8rem;padding:.45rem .7rem;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text-primary);width:140px}
+.sim-field input:focus,.sim-field select:focus{outline:none;border-color:var(--accent-cyan)}
+.sim-calc{font-family:var(--font-mono);font-size:.72rem;padding:.5rem 1rem;
+  background:var(--accent-cyan-dim);border:1px solid rgba(34,211,238,.3);
+  border-radius:var(--radius);color:var(--accent-cyan);cursor:pointer;
+  transition:all .2s;height:fit-content}
+.sim-calc:hover{background:rgba(34,211,238,.2)}
+.sim-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:.8rem;margin-top:1rem}
+.sim-metric{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1rem}
+.sim-metric-label{font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem}
+.sim-metric-value{font-family:var(--font-mono);font-size:1.4rem;font-weight:600;
+  color:var(--accent-cyan)}
+.sim-metric-unit{font-size:.7rem;color:var(--text-dim);margin-left:.2rem}
+.sim-bar-container{margin-top:1rem}
+.sim-bar{height:20px;background:var(--bg-card);border-radius:10px;overflow:hidden;
+  border:1px solid var(--border);position:relative}
+.sim-bar-fill{height:100%;border-radius:10px;transition:width .6s ease;position:relative}
+.sim-bar-hot{background:linear-gradient(90deg,rgba(244,63,94,.7),rgba(244,63,94,.4))}
+.sim-bar-warm{background:linear-gradient(90deg,rgba(245,158,11,.7),rgba(245,158,11,.4))}
+.sim-bar-label{display:flex;justify-content:space-between;font-family:var(--font-mono);
+  font-size:.6rem;color:var(--text-dim);margin-top:.3rem}
+
+/* ═══ CHECKLIST ═══ */
+.checklist{list-style:none;margin:1rem 0}
+.checklist li{display:flex;align-items:flex-start;gap:.6rem;padding:.5rem 0;
+  font-size:.85rem;color:var(--text-secondary);border-bottom:1px solid rgba(42,58,82,.3)}
+.checklist li:last-child{border-bottom:none}
+.check-marker{width:18px;height:18px;border-radius:4px;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  margin-top:2px;cursor:pointer;transition:all .2s;font-size:.65rem}
+.check-marker.done{background:var(--accent-green-dim);border-color:var(--accent-green);
+  color:var(--accent-green)}
+.check-text.done{text-decoration:line-through;color:var(--text-dim)}
+
+/* ═══ BADGE / TAG ═══ */
+.badge{font-family:var(--font-mono);font-size:.6rem;padding:.15rem .4rem;
+  border-radius:3px;letter-spacing:.04em;white-space:nowrap}
+.badge-cyan{background:var(--accent-cyan-dim);color:var(--accent-cyan);border:1px solid rgba(34,211,238,.2)}
+.badge-amber{background:var(--accent-amber-dim);color:var(--accent-amber);border:1px solid rgba(245,158,11,.2)}
+.badge-green{background:var(--accent-green-dim);color:var(--accent-green);border:1px solid rgba(16,185,129,.2)}
+.badge-rose{background:var(--accent-rose-dim);color:var(--accent-rose);border:1px solid rgba(244,63,94,.2)}
+
+/* ═══ TOOLTIP ═══ */
+.tip{position:relative;cursor:help;border-bottom:1px dotted var(--text-dim)}
+.tip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);
+  left:50%;transform:translateX(-50%);background:var(--bg-elevated);border:1px solid var(--border);
+  padding:.4rem .6rem;border-radius:var(--radius);font-size:.72rem;color:var(--text-secondary);
+  white-space:nowrap;z-index:50;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+
+/* ═══ INHERITANCE VISUAL ═══ */
+.inherit-tree{display:flex;flex-direction:column;align-items:center;gap:0;margin:1.5rem 0}
+.inherit-node{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:.6rem 1.2rem;font-family:var(--font-mono);font-size:.78rem;position:relative;
+  text-align:center;min-width:160px}
+.inherit-connector{width:2px;height:24px;background:var(--border);position:relative}
+.inherit-connector::after{content:'▼';position:absolute;bottom:-6px;left:50%;
+  transform:translateX(-50%);font-size:.5rem;color:var(--text-dim)}
+
+/* ═══ PROGRESS STEPS ═══ */
+.impl-steps{display:flex;gap:0;margin:1.5rem 0;position:relative}
+.impl-steps::before{content:'';position:absolute;top:18px;left:24px;right:24px;
+  height:2px;background:var(--border)}
+.impl-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  position:relative;cursor:pointer}
+.impl-step-num{width:36px;height:36px;border-radius:50%;
+  background:var(--bg-card);border:2px solid var(--border);display:flex;
+  align-items:center;justify-content:center;font-family:var(--font-mono);
+  font-size:.75rem;font-weight:600;color:var(--text-dim);z-index:1;transition:all .3s}
+.impl-step.active .impl-step-num{border-color:var(--accent-cyan);color:var(--accent-cyan);
+  background:var(--accent-cyan-dim);box-shadow:var(--glow-cyan)}
+.impl-step-label{font-family:var(--font-mono);font-size:.6rem;color:var(--text-dim);
+  text-align:center;letter-spacing:.05em;text-transform:uppercase;max-width:100px}
+.impl-step.active .impl-step-label{color:var(--accent-cyan)}
+.impl-detail{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:1.2rem 1.5rem;margin-top:1rem;animation:fadeUp .3s ease}
+
+/* ═══ SAP NOTE CALLOUT ═══ */
+.sap-note{display:flex;align-items:flex-start;gap:.6rem;padding:.8rem 1rem;
+  background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);
+  border-radius:var(--radius);margin:1rem 0;font-size:.82rem;color:var(--text-secondary)}
+.sap-note-icon{color:var(--accent-amber);font-size:1rem;flex-shrink:0;margin-top:1px}
+
+/* ═══ FOOTER ═══ */
+.footer{border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;
+  font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);margin-top:3rem}
+
+/* ═══ ANIMATIONS ═══ */
+.fade-in{opacity:0;transform:translateY(8px);transition:all .4s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-label">Interactive Reference Guide</div>
+    <h1>SAP HANA NSE &<br>Table Partitioning</h1>
+    <p class="hero-sub">Architecture, implementation SQL, diagnostic queries, and configuration parameters for SAP HANA 2.0 SPS 08</p>
+    <div class="version-badge"><span class="dot"></span>HANA 2.0 SPS 08 — Unified Persistence</div>
+  </div>
+</header>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <button class="nav-btn active" data-section="overview">Overview</button>
+    <button class="nav-btn" data-section="nse-deep">NSE Deep Dive</button>
+    <button class="nav-btn" data-section="partition-deep">Partitioning Deep Dive</button>
+    <button class="nav-btn" data-section="decision">Decision Tools</button>
+    <button class="nav-btn" data-section="sql-impl">SQL Implementation</button>
+    <button class="nav-btn" data-section="diagnostics">Diagnostic Queries</button>
+    <button class="nav-btn" data-section="params">Parameters</button>
+    <button class="nav-btn" data-section="views">System Views</button>
+  </div>
+</nav>
+
+<!-- ═══════════════ SECTIONS ═══════════════ -->
+<main class="main">
+
+<!-- ──────── OVERVIEW ──────── -->
+<div class="section active" id="overview">
+  <div class="section-head">
+    <div class="section-tag">Foundation</div>
+    <h2>The Big Picture</h2>
+    <p>How NSE and Partitioning work together to create a modern data tiering strategy</p>
+  </div>
+
+  <!-- Data Tier Visual -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon cyan">◈</div>
+      <h3>Three-Tier Data Temperature Model</h3>
+    </div>
+    <div class="tier-stack">
+      <div class="tier tier-hot">
+        <div class="tier-label">Hot</div>
+        <div class="tier-desc"><strong>Column-loadable</strong> — Fully in DRAM. Maximum query performance. Actively queried data.</div>
+        <div class="tier-tech">COLUMN LOADABLE</div>
+      </div>
+      <div class="tier tier-warm">
+        <div class="tier-label">Warm</div>
+        <div class="tier-desc"><strong>Page-loadable (NSE)</strong> — Disk-backed, loaded into buffer cache page-by-page. 2–10× slower on cold reads.</div>
+        <div class="tier-tech">PAGE LOADABLE</div>
+      </div>
+      <div class="tier tier-cold">
+        <div class="tier-label">Cold</div>
+        <div class="tier-desc"><strong>Archived</strong> — Outside HANA. Data lakes, ILM archiving, or Dynamic Tiering (separate component).</div>
+        <div class="tier-tech">EXTERNAL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture Diagram -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">◇</div>
+      <h3>NSE Architecture — Data Flow</h3>
+    </div>
+    <div class="arch-diagram">
+      <div class="arch-label">application layer</div>
+      <div class="arch-row">
+        <div class="arch-box hot">SQL Query</div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-box hot">Column Store Engine</div>
+      </div>
+      <div class="arch-arrow-down">↓ data request ↓</div>
+      <div class="arch-row">
+        <div class="arch-box hot" style="min-width:140px">Hot Data<br><small>DRAM (Column-loadable)</small></div>
+        <div class="arch-box cache" style="min-width:170px">Buffer Cache<br><small>DRAM · LRU eviction · 10% default</small></div>
+      </div>
+      <div class="arch-arrow-down">cache miss ↓</div>
+      <div class="arch-row">
+        <div class="arch-box disk" style="min-width:220px">/hana/data/ Persistence<br><small>Unified Format (SPS 08) · Page sizes 4KB–16MB</small></div>
+      </div>
+      <div class="arch-label" style="margin-top:.6rem">NSE pages loaded on demand → cached → evicted by LRU when buffer full</div>
+    </div>
+  </div>
+
+  <!-- Key Stats -->
+  <div class="grid-3">
+    <div class="card" style="text-align:center">
+      <div style="font-family:var(--font-mono);font-size:2rem;font-weight:700;color:var(--accent-cyan)">20–25%</div>
+      <div style="font-size:.8rem;color:var(--text-dim);margin-top:.3rem">Typical memory savings with NSE</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-family:var(--font-mono);font-size:2rem;font-weight:700;color:var(--accent-amber)">1 : 4</div>
+      <div style="font-size:.8rem;color:var(--text-dim);margin-top:.3rem">Max recommended hot : warm ratio</div>
+    </div>
+    <div class="card" style="text-align:center">
+      <div style="font-family:var(--font-mono);font-size:2rem;font-weight:700;color:var(--accent-green)">2B</div>
+      <div style="font-size:.8rem;color:var(--text-dim);margin-top:.3rem">Max rows per partition</div>
+    </div>
+  </div>
+
+  <!-- Why-What-How Grid -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="card-icon amber">N</div><h3>NSE — Why, What, How</h3></div>
+      <table class="comp-table" style="margin:0">
+        <tr><td style="color:var(--accent-amber);font-weight:600;width:60px">WHY</td><td>Reduce memory costs. Keep infrequently accessed data queryable without loading it all into DRAM.</td></tr>
+        <tr><td style="color:var(--accent-amber);font-weight:600">WHAT</td><td>A built-in warm storage tier using page-loadable columns with a disk-backed buffer cache. No extra license required.</td></tr>
+        <tr><td style="color:var(--accent-amber);font-weight:600">HOW</td><td>Mark tables/columns/partitions as <code>PAGE LOADABLE</code>. Data stays on disk, pages loaded into buffer cache on demand via LRU.</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-icon green">P</div><h3>Partitioning — Why, What, How</h3></div>
+      <table class="comp-table" style="margin:0">
+        <tr><td style="color:var(--accent-green);font-weight:600;width:60px">WHY</td><td>Improve query performance via pruning, manage data lifecycle, overcome 2B row limit, enable parallel processing.</td></tr>
+        <tr><td style="color:var(--accent-green);font-weight:600">WHAT</td><td>Horizontal splitting of column-store tables into independent sub-tables (up to 16,000 partitions per table).</td></tr>
+        <tr><td style="color:var(--accent-green);font-weight:600">HOW</td><td>Define partition scheme (HASH, RANGE, ROUND ROBIN, or multi-level) at table creation or via ALTER TABLE.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="sap-note">
+    <div class="sap-note-icon">⚑</div>
+    <div><strong>SPS 08 Key Enhancement:</strong> Unified persistence format eliminates the slow persistence-format conversion required in SPS 04–07. Switching between COLUMN and PAGE loadable is now instant for any table size.</div>
+  </div>
+</div>
+
+<!-- ──────── NSE DEEP DIVE ──────── -->
+<div class="section" id="nse-deep">
+  <div class="section-head">
+    <div class="section-tag">Native Storage Extension</div>
+    <h2>NSE Deep Dive</h2>
+    <p>Buffer cache mechanics, load unit inheritance, prerequisites, and implementation phases</p>
+  </div>
+
+  <!-- Buffer Cache -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon cyan">◎</div><h3>Buffer Cache Mechanics</h3></div>
+    <div class="grid-2">
+      <div>
+        <h4>How the Buffer Cache Works</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary)">
+          The buffer cache sits in DRAM and holds recently accessed pages from page-loadable columns. Default size is <strong>10% of total HANA memory</strong>. When a query touches NSE data:
+        </p>
+        <ol style="font-size:.82rem;color:var(--text-secondary);margin-top:.6rem;padding-left:1.2rem">
+          <li style="margin-bottom:.3rem"><strong>Cache hit</strong> → Page already in buffer → served at near-DRAM speed</li>
+          <li style="margin-bottom:.3rem"><strong>Cache miss</strong> → Page loaded from disk → placed in buffer → served</li>
+          <li style="margin-bottom:.3rem"><strong>Eviction</strong> → When buffer is full, LRU pages are evicted</li>
+          <li><strong>OOB Event</strong> → If buffer cannot accommodate → Out-Of-Buffer alert</li>
+        </ol>
+      </div>
+      <div>
+        <h4>Key Constraints</h4>
+        <ul style="font-size:.82rem;color:var(--text-secondary);list-style:none">
+          <li style="margin-bottom:.4rem">• Delta store for NSE tables always stays <strong>hot in DRAM</strong></li>
+          <li style="margin-bottom:.4rem">• Buffer cache <strong>cannot be pre-loaded or pinned</strong></li>
+          <li style="margin-bottom:.4rem">• Largest page-loadable column must fit entirely in the buffer</li>
+          <li style="margin-bottom:.4rem">• Page sizes range from <strong>4 KB to 16 MB</strong></li>
+          <li style="margin-bottom:.4rem">• Heap allocator: <code>Pool/CS/BufferPage</code></li>
+          <li>• SPS 08: <code>unload_threshold</code> auto-calculated from NSE persistence size</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buffer Cache Simulator -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon amber">⚙</div><h3>Buffer Cache Sizing Calculator</h3></div>
+    <div class="sim-container">
+      <div class="sim-controls">
+        <div class="sim-field">
+          <label>Total HANA Memory (GB)</label>
+          <input type="number" id="simMemory" value="512" min="64" step="64">
+        </div>
+        <div class="sim-field">
+          <label>Total Data Size (GB)</label>
+          <input type="number" id="simDataSize" value="800" min="100" step="50">
+        </div>
+        <div class="sim-field">
+          <label>Warm Data % Target</label>
+          <input type="number" id="simWarmPct" value="30" min="5" max="80" step="5">
+        </div>
+        <div class="sim-field">
+          <label>Buffer Cache % (max_size_rel)</label>
+          <input type="number" id="simCachePct" value="10" min="5" max="30" step="1">
+        </div>
+        <button class="sim-calc" onclick="runSimulator()">CALCULATE</button>
+      </div>
+      <div class="sim-results" id="simResults">
+        <div class="sim-metric"><div class="sim-metric-label">Buffer Cache Size</div><div class="sim-metric-value" id="simBufSize">51.2<span class="sim-metric-unit">GB</span></div></div>
+        <div class="sim-metric"><div class="sim-metric-label">Warm Data Size</div><div class="sim-metric-value" id="simWarmSize">240<span class="sim-metric-unit">GB</span></div></div>
+        <div class="sim-metric"><div class="sim-metric-label">Hot Data in DRAM</div><div class="sim-metric-value" id="simHotSize">560<span class="sim-metric-unit">GB</span></div></div>
+        <div class="sim-metric"><div class="sim-metric-label">Cache : Warm Ratio</div><div class="sim-metric-value" id="simRatio">1:4.7</div></div>
+        <div class="sim-metric"><div class="sim-metric-label">Memory Savings</div><div class="sim-metric-value" id="simSavings">30<span class="sim-metric-unit">%</span></div></div>
+        <div class="sim-metric"><div class="sim-metric-label">Meets SAP 1:8 Guide?</div><div class="sim-metric-value" id="simOk" style="color:var(--accent-green)">✓ YES</div></div>
+      </div>
+      <div class="sim-bar-container" style="margin-top:1rem">
+        <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);margin-bottom:.3rem">MEMORY DISTRIBUTION</div>
+        <div class="sim-bar">
+          <div class="sim-bar-fill sim-bar-hot" id="simBarHot" style="width:70%"></div>
+        </div>
+        <div class="sim-bar-label"><span>Hot (DRAM)</span><span id="simBarLabel">70% hot · 30% warm (on disk)</span><span>Warm (Disk+Cache)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Unit Inheritance -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon green">↕</div><h3>Load Unit Inheritance Hierarchy</h3></div>
+    <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem">When a child's load unit is set to DEFAULT, it inherits from its parent. Explicit settings override inheritance.</p>
+    <div class="inherit-tree">
+      <div class="inherit-node" style="border-color:var(--accent-cyan)">
+        <strong>TABLE</strong> load unit
+        <div style="font-size:.7rem;color:var(--text-dim)">ALTER TABLE ... PAGE LOADABLE</div>
+      </div>
+      <div class="inherit-connector"></div>
+      <div class="inherit-node" style="border-color:var(--accent-amber)">
+        <strong>PARTITION</strong> load unit
+        <div style="font-size:.7rem;color:var(--text-dim)">ALTER TABLE ... ALTER PARTITION &lt;id&gt; PAGE LOADABLE</div>
+      </div>
+      <div class="inherit-connector"></div>
+      <div class="inherit-node" style="border-color:var(--accent-green)">
+        <strong>COLUMN</strong> load unit
+        <div style="font-size:.7rem;color:var(--text-dim)">ALTER TABLE ... ALTER ("col" ALTER PAGE LOADABLE)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NSE Types Comparison -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon rose">◆</div><h3>NSE Granularity Levels</h3></div>
+    <table class="comp-table">
+      <thead><tr><th>Level</th><th>Use Case</th><th>Partition Support</th><th>Complexity</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Table</td><td>Uniformly low-frequency tables (e.g., EDID4, BALDAT, audit logs)</td><td class="yes">Any</td><td><span class="badge badge-green">Low</span></td></tr>
+        <tr><td class="mono">Column</td><td>Large rarely-read columns (comments, BLOBs) in otherwise hot tables</td><td class="yes">Any</td><td><span class="badge badge-amber">Medium</span></td></tr>
+        <tr><td class="mono">Partition</td><td>Time-based: current partitions hot, historical partitions warm</td><td>Heterogeneous only</td><td><span class="badge badge-rose">High</span></td></tr>
+        <tr><td class="mono">Index</td><td>Large inverted indexes rarely used for search</td><td class="yes">Any</td><td><span class="badge badge-green">Low</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Prerequisites -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon amber">✓</div><h3>Prerequisites Checklist</h3></div>
+    <ul class="checklist" id="nseChecklist">
+      <li><span class="check-marker" onclick="toggleCheck(this)"></span><span class="check-text">HANA 2.0 SPS 04+ (SPS 08 Rev 88+ recommended for unified persistence)</span></li>
+      <li><span class="check-marker" onclick="toggleCheck(this)"></span><span class="check-text">No additional license required — included in standard SAP HANA license</span></li>
+      <li><span class="check-marker" onclick="toggleCheck(this)"></span><span class="check-text">Sufficient disk space on /hana/data (~10% more than normal for NSE metadata overhead)</span></li>
+      <li><span class="check-marker" onclick="toggleCheck(this)"></span><span class="check-text">Fast disk I/O subsystem (SSD/NVMe recommended for warm data performance)</span></li>
+      <li><span class="check-marker" onclick="toggleCheck(this)"></span><span class="check-text">NSE partitions should be smaller than 10 GB each</span></li>
+      <li><span class="check-marker" onclick="toggleCheck(this)"></span><span class="check-text">For SPS 04–07: Check persistence format via M_CS_COLUMNS_PERSISTENCE</span></li>
+      <li><span class="check-marker" onclick="toggleCheck(this)"></span><span class="check-text">Review SAP Notes: 2799997, 2816823, 2973243, 2983008</span></li>
+    </ul>
+  </div>
+
+  <!-- Implementation Steps -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon blue">▸</div><h3>Implementation Phases</h3></div>
+    <div class="impl-steps" id="implSteps">
+      <div class="impl-step active" onclick="showImplStep(0)"><div class="impl-step-num">1</div><div class="impl-step-label">Pre-Checks</div></div>
+      <div class="impl-step" onclick="showImplStep(1)"><div class="impl-step-num">2</div><div class="impl-step-label">Planning</div></div>
+      <div class="impl-step" onclick="showImplStep(2)"><div class="impl-step-num">3</div><div class="impl-step-label">Execute</div></div>
+      <div class="impl-step" onclick="showImplStep(3)"><div class="impl-step-num">4</div><div class="impl-step-label">Monitor</div></div>
+    </div>
+    <div id="implDetail">
+      <div class="impl-detail" id="implPane0">
+        <h4>Phase 1 — System Pre-Checks</h4>
+        <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:.8rem">Verify HANA version, persistence format, current memory utilization, and available disk space.</p>
+        <div class="sql-block"><div class="sql-header"><span class="sql-title">Pre-check queries</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Verify HANA version (need SPS 04+, ideally SPS 08)</span>
+<span class="kw">SELECT</span> VERSION <span class="kw">FROM</span> M_DATABASE;
+
+<span class="cm">-- Check persistence format (SPS 08 = UNIFIED)</span>
+<span class="kw">SELECT DISTINCT</span> PERSISTENCE_TYPE <span class="kw">FROM</span> M_CS_COLUMNS_PERSISTENCE;
+
+<span class="cm">-- Current memory footprint</span>
+<span class="kw">SELECT</span> <span class="fn">TO_DECIMAL</span>(<span class="fn">SUM</span>(MEMORY_SIZE_IN_TOTAL)/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">10</span>, <span class="num">2</span>) <span class="kw">AS</span> <span class="str">"MEM_GB"</span>
+<span class="kw">FROM</span> M_CS_TABLES;
+
+<span class="cm">-- Available disk</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> M_DISKS <span class="kw">WHERE</span> USAGE_TYPE <span class="op">=</span> <span class="str">'DATA'</span>;</pre></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────── PARTITION DEEP DIVE ──────── -->
+<div class="section" id="partition-deep">
+  <div class="section-head">
+    <div class="section-tag">Table Partitioning</div>
+    <h2>Partitioning Deep Dive</h2>
+    <p>Four partition types, pruning behavior, dynamic range, and multi-level strategies</p>
+  </div>
+
+  <!-- Partition Types -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon green">▦</div><h3>Partition Type Comparison</h3></div>
+    <div style="overflow-x:auto">
+    <table class="comp-table">
+      <thead><tr><th>Feature</th><th>HASH</th><th>RANGE</th><th>ROUND ROBIN</th><th>Multi-Level</th></tr></thead>
+      <tbody>
+        <tr><td>Distribution</td><td>Hash function on column(s)</td><td>Value ranges</td><td>Rotation (row-by-row)</td><td>Two levels combined</td></tr>
+        <tr><td>PK Required?</td><td class="yes">Yes — columns must be in PK</td><td class="no">No</td><td class="no">No (PK not allowed)</td><td>Only for 1st level if HASH</td></tr>
+        <tr><td>Pruning</td><td>Only with ALL hash cols + = / IN</td><td class="yes">Any comparison operator</td><td class="no">Never</td><td>Depends on levels</td></tr>
+        <tr><td>Dynamic?</td><td class="no">No</td><td class="yes">Yes — THRESHOLD or INTERVAL</td><td class="no">No</td><td>Yes (if RANGE level)</td></tr>
+        <tr><td>OTHERS Partition</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td><td>Yes (RANGE level)</td></tr>
+        <tr><td>NSE per-partition?</td><td class="no">No (heterog. only)</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td></tr>
+        <tr><td>Best For</td><td>Load balancing, scale-out</td><td>Time-based lifecycle</td><td>Staging tables, no PK</td><td>Complex requirements</td></tr>
+        <tr><td>Max Partitions</td><td colspan="4" class="mono" style="text-align:center">16,000 per table</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- Multi-Level Combinations -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon blue">⊞</div><h3>Valid Multi-Level Combinations</h3></div>
+    <table class="comp-table">
+      <thead><tr><th>1st Level</th><th>2nd Level Options</th><th>Heterogeneous NSE?</th><th>Common Pattern</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">HASH</td><td class="mono">RANGE, HASH</td><td class="yes">Yes (HASH-RANGE)</td><td>Scale-out + time-based lifecycle</td></tr>
+        <tr><td class="mono">RANGE</td><td class="mono">RANGE</td><td class="yes">Yes</td><td>Region + time partitioning</td></tr>
+        <tr><td class="mono">ROUNDROBIN</td><td class="mono">RANGE</td><td class="no">No</td><td>Staging + date archival</td></tr>
+      </tbody>
+    </table>
+    <div class="sap-note">
+      <div class="sap-note-icon">⚑</div>
+      <div><strong>SPS 08 New:</strong> HASH-RANGE now supports heterogeneous partition-level load units — meaning you can apply NSE per-partition in a HASH-RANGE scheme.</div>
+    </div>
+  </div>
+
+  <!-- Dynamic Range -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon amber">↻</div><h3>Dynamic Range Partitioning</h3></div>
+    <div class="grid-2">
+      <div>
+        <h4>THRESHOLD Mode</h4>
+        <p style="font-size:.83rem;color:var(--text-secondary);margin-bottom:.6rem">Auto-splits the OTHERS partition when its row count exceeds the threshold value. Checked every 15 minutes (configurable).</p>
+        <div class="sql-block"><div class="sql-header"><span class="sql-title">Threshold example</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">CREATE COLUMN TABLE</span> log_data (
+    id <span class="kw">BIGINT NOT NULL</span>,
+    event_date <span class="kw">DATE NOT NULL</span>
+) <span class="kw">PARTITION BY RANGE</span> (event_date) (
+    <span class="kw">PARTITION</span> <span class="str">'2024-01-01'</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="str">'2025-01-01'</span>,
+    <span class="kw">PARTITION OTHERS DYNAMIC THRESHOLD</span> <span class="num">10000000</span>
+);</pre></div>
+      </div>
+      <div>
+        <h4>INTERVAL Mode (SPS 06+)</h4>
+        <p style="font-size:.83rem;color:var(--text-secondary);margin-bottom:.6rem">Auto-creates partitions by time or numeric interval. DISTANCE specifies how far ahead to pre-create partitions.</p>
+        <div class="sql-block"><div class="sql-header"><span class="sql-title">Interval example</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">CREATE COLUMN TABLE</span> sensor_data (
+    id <span class="kw">BIGINT NOT NULL</span>,
+    ts <span class="kw">TIMESTAMP NOT NULL</span>
+) <span class="kw">PARTITION BY RANGE</span> (<span class="fn">MONTH</span>(ts)) (
+    <span class="kw">PARTITION</span> <span class="str">'202401'</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="str">'202601'</span>,
+    <span class="kw">PARTITION OTHERS DYNAMIC</span>
+        <span class="kw">INTERVAL</span> <span class="num">1</span> <span class="kw">MONTH DISTANCE</span> <span class="num">12</span> <span class="kw">MONTH</span>
+);</pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Partition Pruning -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon rose">⚡</div><h3>Partition Pruning — When Does It Fire?</h3></div>
+    <table class="comp-table">
+      <thead><tr><th>Partition Type</th><th>Predicate Required</th><th>Pruning Fires?</th><th>Example WHERE</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">HASH(col1)</td><td>col1 = val or col1 IN (...)</td><td class="yes">✓ Yes</td><td class="mono">WHERE col1 = 100</td></tr>
+        <tr><td class="mono">HASH(c1,c2)</td><td>ALL hash cols with = / IN</td><td class="yes">✓ Both present</td><td class="mono">WHERE c1=1 AND c2=2</td></tr>
+        <tr><td class="mono">HASH(c1,c2)</td><td>Only one hash col</td><td class="no">✗ Full scan</td><td class="mono">WHERE c1=1</td></tr>
+        <tr><td class="mono">RANGE(date_col)</td><td>Any comparison</td><td class="yes">✓ Yes</td><td class="mono">WHERE date_col > '2025-01-01'</td></tr>
+        <tr><td class="mono">RANGE(date_col)</td><td>No predicate on date_col</td><td class="no">✗ Full scan</td><td class="mono">WHERE status = 'A'</td></tr>
+        <tr><td class="mono">ROUNDROBIN</td><td>Any / None</td><td class="no">✗ Never prunes</td><td class="mono">— all partitions scanned</td></tr>
+      </tbody>
+    </table>
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Verify pruning with explain plan</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">EXPLAIN PLAN FOR SELECT</span> * <span class="kw">FROM</span> my_table <span class="kw">WHERE</span> fiscal_year <span class="op">=</span> <span class="num">2025</span>;
+<span class="cm">-- Check plan visualization: only relevant PART_IDs appear in scan ops</span></pre></div>
+  </div>
+
+  <!-- Online vs Standard -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon cyan">⇄</div><h3>Online vs Standard Repartitioning</h3></div>
+    <table class="comp-table">
+      <thead><tr><th>Aspect</th><th>Standard (Offline)</th><th>Online</th></tr></thead>
+      <tbody>
+        <tr><td>Lock type</td><td>Exclusive lock — only SELECTs allowed</td><td>No exclusive lock — DML continues</td></tr>
+        <tr><td>Threads</td><td>One per column</td><td>Table replication mechanism</td></tr>
+        <tr><td>Duration</td><td>Can be very long for large tables</td><td>Longer overall but non-blocking</td></tr>
+        <tr><td>Resources</td><td>Lower overhead</td><td>Higher CPU, memory, I/O</td></tr>
+        <tr><td>Interim objects</td><td>None</td><td><code>_SYS_OMR_&lt;table&gt;#&lt;id&gt;</code></td></tr>
+        <tr><td>Fast path</td><td>If new count is multiple/divider of current (e.g., 4→8)</td><td>Always processes full table</td></tr>
+        <tr><td>Best for</td><td>Maintenance windows, small tables</td><td>Production systems, 24×7 uptime</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ──────── DECISION TOOLS ──────── -->
+<div class="section" id="decision">
+  <div class="section-head">
+    <div class="section-tag">Interactive Tools</div>
+    <h2>Decision Helpers</h2>
+    <p>Interactive decision trees to guide partition type and NSE granularity selection</p>
+  </div>
+
+  <!-- Partition Type Decision Tree -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon green">◈</div><h3>Partition Type Selector</h3></div>
+    <div class="decision-tree" id="partDT"></div>
+  </div>
+
+  <!-- NSE Granularity Decision Tree -->
+  <div class="card">
+    <div class="card-header"><div class="card-icon amber">◈</div><h3>NSE Granularity Selector</h3></div>
+    <div class="decision-tree" id="nseDT"></div>
+  </div>
+</div>
+
+<!-- ──────── SQL IMPLEMENTATION ──────── -->
+<div class="section" id="sql-impl">
+  <div class="section-head">
+    <div class="section-tag">Implementation SQL</div>
+    <h2>Ready-to-Use SQL</h2>
+    <p>Copy-paste SQL for enabling NSE, creating partitions, and performing ALTER operations</p>
+  </div>
+
+  <div class="inner-tabs" id="sqlTabs">
+    <button class="inner-tab active" data-pane="sqlNse">NSE Operations</button>
+    <button class="inner-tab" data-pane="sqlPart">Partitioning</button>
+    <button class="inner-tab" data-pane="sqlCombo">NSE + Partitioning</button>
+    <button class="inner-tab" data-pane="sqlParams">Parameter Config</button>
+  </div>
+
+  <!-- NSE SQL -->
+  <div class="tab-pane active" id="sqlNse">
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Table Level — Enable / Revert</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Make entire table page-loadable</span>
+<span class="kw">ALTER TABLE</span> <span class="str">"&lt;schema&gt;"</span>.<span class="str">"&lt;table&gt;"</span> <span class="kw">PAGE LOADABLE</span>;
+
+<span class="cm">-- With CASCADE (propagates to all columns + indexes)</span>
+<span class="kw">ALTER TABLE</span> <span class="str">"&lt;schema&gt;"</span>.<span class="str">"&lt;table&gt;"</span> <span class="kw">PAGE LOADABLE CASCADE</span>;
+
+<span class="cm">-- Create new table as page-loadable</span>
+<span class="kw">CREATE COLUMN TABLE</span> <span class="str">"&lt;schema&gt;"</span>.<span class="str">"&lt;table&gt;"</span> (
+    col1 <span class="kw">INT</span>, col2 <span class="kw">VARCHAR</span>(<span class="num">100</span>)
+) <span class="kw">PAGE LOADABLE</span>;
+
+<span class="cm">-- Revert to column-loadable</span>
+<span class="kw">ALTER TABLE</span> <span class="str">"&lt;table&gt;"</span> <span class="kw">COLUMN LOADABLE</span>;</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Column Level — Non-blocking (recommended)</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Non-blocking column conversion (SPS 05+)</span>
+<span class="kw">ALTER TABLE</span> <span class="str">"&lt;table&gt;"</span> <span class="kw">ALTER</span> (<span class="str">"&lt;column&gt;"</span> <span class="kw">ALTER PAGE LOADABLE</span>);
+
+<span class="cm">-- Revert (non-blocking)</span>
+<span class="kw">ALTER TABLE</span> <span class="str">"&lt;table&gt;"</span> <span class="kw">ALTER</span> (<span class="str">"&lt;column&gt;"</span> <span class="kw">ALTER COLUMN LOADABLE</span>);</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Index Level</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">ALTER INDEX</span> <span class="str">"&lt;schema&gt;"</span>.<span class="str">"&lt;index&gt;"</span> <span class="kw">PAGE LOADABLE</span>;
+<span class="kw">ALTER INDEX</span> <span class="str">"&lt;schema&gt;"</span>.<span class="str">"&lt;index&gt;"</span> <span class="kw">COLUMN LOADABLE</span>;  <span class="cm">-- revert</span></pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Special — Audit Log (SPS 07+)</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">ALTER SYSTEM ALTER AUDIT LOG PAGE LOADABLE</span>;</pre></div>
+  </div>
+
+  <!-- Partitioning SQL -->
+  <div class="tab-pane" id="sqlPart">
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">HASH Partitioning</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Fixed partition count</span>
+<span class="kw">CREATE COLUMN TABLE</span> sales (
+    order_id <span class="kw">INT</span>, customer_id <span class="kw">INT</span>, amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    <span class="kw">PRIMARY KEY</span> (order_id)
+) <span class="kw">PARTITION BY HASH</span> (order_id) <span class="kw">PARTITIONS</span> <span class="num">8</span>;
+
+<span class="cm">-- Dynamic server-count-based</span>
+<span class="kw">CREATE COLUMN TABLE</span> sales (
+    order_id <span class="kw">INT</span>, customer_id <span class="kw">INT</span>,
+    <span class="kw">PRIMARY KEY</span> (order_id)
+) <span class="kw">PARTITION BY HASH</span> (order_id) <span class="kw">PARTITIONS</span> <span class="fn">GET_NUM_SERVERS</span>();</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">RANGE Partitioning</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">CREATE COLUMN TABLE</span> invoice (
+    inv_id <span class="kw">INT</span>, fiscal_year <span class="kw">INT</span>, amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    <span class="kw">PRIMARY KEY</span> (inv_id, fiscal_year)
+) <span class="kw">PARTITION BY RANGE</span> (fiscal_year) (
+    <span class="kw">PARTITION</span> <span class="num">2020</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">2023</span>,
+    <span class="kw">PARTITION</span> <span class="num">2023</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">2025</span>,
+    <span class="kw">PARTITION</span> <span class="num">2025</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">2027</span>,
+    <span class="kw">PARTITION OTHERS</span>
+);</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">ROUND ROBIN Partitioning</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">CREATE COLUMN TABLE</span> staging_data (
+    col1 <span class="kw">INT</span>, col2 <span class="kw">NVARCHAR</span>(<span class="num">100</span>)
+) <span class="kw">PARTITION BY ROUNDROBIN PARTITIONS</span> <span class="num">4</span>;</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Multi-Level (HASH + RANGE)</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">CREATE COLUMN TABLE</span> transactions (
+    tx_id <span class="kw">INT</span>, account_id <span class="kw">INT</span>, tx_date <span class="kw">INT</span>, amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+    <span class="kw">PRIMARY KEY</span> (tx_id, account_id)
+) <span class="kw">PARTITION BY HASH</span> (account_id) <span class="kw">PARTITIONS</span> <span class="num">4</span>,
+    <span class="kw">RANGE</span> (tx_date) (
+        <span class="kw">PARTITION</span> <span class="num">20220101</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">20240101</span>,
+        <span class="kw">PARTITION</span> <span class="num">20240101</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">20260101</span>,
+        <span class="kw">PARTITION OTHERS</span>
+    );</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">ALTER Partition Operations</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Partition an existing table</span>
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">PARTITION BY HASH</span> (key_col) <span class="kw">PARTITIONS</span> <span class="num">8</span>;
+
+<span class="cm">-- Add / Drop range partitions</span>
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">ADD PARTITION</span> <span class="num">20270101</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">20280101</span>;
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">DROP PARTITION</span> <span class="num">20200101</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">20210101</span>;
+
+<span class="cm">-- Enable dynamic range on OTHERS</span>
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">ALTER PARTITION OTHERS DYNAMIC THRESHOLD</span> <span class="num">5000000</span>;
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">ALTER PARTITION OTHERS DYNAMIC INTERVAL</span> <span class="num">1</span> <span class="kw">YEAR</span>;
+
+<span class="cm">-- Remove partitioning entirely</span>
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">NOT PARTITIONED</span>;
+
+<span class="cm">-- Force dynamic partition creation</span>
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">ADD PARTITION FROM OTHERS</span>;</pre></div>
+  </div>
+
+  <!-- Combined NSE + Partitioning -->
+  <div class="tab-pane" id="sqlCombo">
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Heterogeneous Partitions with Mixed Load Units</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Current year HOT, historical WARM — the power pattern</span>
+<span class="kw">CREATE COLUMN TABLE</span> sales_history (
+    id <span class="kw">INT</span>, fiscal_year <span class="kw">INT</span>, data <span class="kw">NVARCHAR</span>(<span class="num">500</span>)
+) <span class="kw">PARTITION BY RANGE</span> (fiscal_year) ((
+    <span class="kw">PARTITION</span> <span class="num">2024</span> <span class="op">&lt;=</span> <span class="kw">VALUES</span> <span class="op">&lt;</span> <span class="num">2026</span> <span class="kw">COLUMN LOADABLE</span>,
+    <span class="kw">PARTITION VALUE</span> <span class="op">&lt;</span> <span class="num">2024</span> <span class="kw">PAGE LOADABLE</span>,
+    <span class="kw">PARTITION OTHERS COLUMN LOADABLE</span>
+));</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Set existing partition to page-loadable</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Move historical partition to warm storage</span>
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">ALTER PARTITION</span> <span class="num">3</span> <span class="kw">PAGE LOADABLE</span>;
+
+<span class="cm">-- Move it back to hot</span>
+<span class="kw">ALTER TABLE</span> my_table <span class="kw">ALTER PARTITION</span> <span class="num">3</span> <span class="kw">COLUMN LOADABLE</span>;</pre></div>
+  </div>
+
+  <!-- Parameter Config SQL -->
+  <div class="tab-pane" id="sqlParams">
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">NSE Configuration</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Enable NSE Advisor statistics collection</span>
+<span class="kw">ALTER SYSTEM ALTER CONFIGURATION</span> (<span class="str">'indexserver.ini'</span>,<span class="str">'system'</span>)
+    <span class="kw">SET</span> (<span class="str">'cs_access_statistics'</span>,<span class="str">'collection_enabled'</span>) <span class="op">=</span> <span class="str">'true'</span>
+    <span class="kw">WITH RECONFIGURE</span>;
+
+<span class="cm">-- Set buffer cache to 200 GB absolute</span>
+<span class="kw">ALTER SYSTEM ALTER CONFIGURATION</span> (<span class="str">'global.ini'</span>,<span class="str">'SYSTEM'</span>)
+    <span class="kw">SET</span> (<span class="str">'buffer_cache_cs'</span>,<span class="str">'max_size'</span>) <span class="op">=</span> <span class="str">'204800'</span>
+    <span class="kw">WITH RECONFIGURE</span>;
+
+<span class="cm">-- Set buffer cache to 15% of memory</span>
+<span class="kw">ALTER SYSTEM ALTER CONFIGURATION</span> (<span class="str">'global.ini'</span>,<span class="str">'SYSTEM'</span>)
+    <span class="kw">SET</span> (<span class="str">'buffer_cache_cs'</span>,<span class="str">'max_size_rel'</span>) <span class="op">=</span> <span class="str">'15'</span>
+    <span class="kw">WITH RECONFIGURE</span>;
+
+<span class="cm">-- Set eviction threshold</span>
+<span class="kw">ALTER SYSTEM ALTER CONFIGURATION</span> (<span class="str">'global.ini'</span>,<span class="str">'SYSTEM'</span>)
+    <span class="kw">SET</span> (<span class="str">'buffer_cache_cs'</span>,<span class="str">'unload_threshold'</span>) <span class="op">=</span> <span class="str">'80'</span>
+    <span class="kw">WITH RECONFIGURE</span>;
+
+<span class="cm">-- UNSET (revert to default)</span>
+<span class="kw">ALTER SYSTEM ALTER CONFIGURATION</span> (<span class="str">'global.ini'</span>,<span class="str">'SYSTEM'</span>)
+    <span class="kw">UNSET</span> (<span class="str">'buffer_cache_cs'</span>,<span class="str">'max_size'</span>)
+    <span class="kw">WITH RECONFIGURE</span>;</pre></div>
+
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Partitioning Configuration</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Increase split threads for faster repartitioning</span>
+<span class="kw">ALTER SYSTEM ALTER CONFIGURATION</span> (<span class="str">'indexserver.ini'</span>,<span class="str">'system'</span>)
+    <span class="kw">SET</span> (<span class="str">'partitioning'</span>,<span class="str">'split_threads'</span>) <span class="op">=</span> <span class="str">'32'</span>
+    <span class="kw">WITH RECONFIGURE</span>;
+
+<span class="cm">-- Set dynamic range default threshold</span>
+<span class="kw">ALTER SYSTEM ALTER CONFIGURATION</span> (<span class="str">'indexserver.ini'</span>,<span class="str">'system'</span>)
+    <span class="kw">SET</span> (<span class="str">'partitioning'</span>,<span class="str">'dynamic_range_default_threshold'</span>) <span class="op">=</span> <span class="str">'10000000'</span>
+    <span class="kw">WITH RECONFIGURE</span>;</pre></div>
+  </div>
+</div>
+
+<!-- ──────── DIAGNOSTICS ──────── -->
+<div class="section" id="diagnostics">
+  <div class="section-head">
+    <div class="section-tag">Monitoring</div>
+    <h2>Diagnostic Queries</h2>
+    <p>Production-ready queries to identify NSE tables, partition details, and buffer cache health</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon cyan">Q1</div><h3>All NSE-Enabled Tables — Full Detail</h3></div>
+    <p style="font-size:.83rem;color:var(--text-secondary);margin-bottom:.8rem">Finds tables with PAGE LOADABLE at any level (table, column, or partition) with memory, disk, and buffer cache usage.</p>
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">NSE comprehensive report</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">WITH</span>
+nse_table_level <span class="kw">AS</span> (
+    <span class="kw">SELECT DISTINCT</span> SCHEMA_NAME, TABLE_NAME, <span class="str">'TABLE'</span> <span class="kw">AS</span> NSE_LEVEL
+    <span class="kw">FROM</span> TABLES
+    <span class="kw">WHERE</span> IS_COLUMN_TABLE <span class="op">=</span> <span class="str">'TRUE'</span> <span class="kw">AND</span> LOAD_UNIT <span class="op">=</span> <span class="str">'PAGE'</span>
+),
+nse_column_level <span class="kw">AS</span> (
+    <span class="kw">SELECT DISTINCT</span> SCHEMA_NAME, TABLE_NAME, <span class="str">'COLUMN'</span> <span class="kw">AS</span> NSE_LEVEL
+    <span class="kw">FROM</span> TABLE_COLUMNS <span class="kw">WHERE</span> LOAD_UNIT <span class="op">=</span> <span class="str">'PAGE'</span>
+),
+nse_partition_level <span class="kw">AS</span> (
+    <span class="kw">SELECT DISTINCT</span> SCHEMA_NAME, TABLE_NAME, <span class="str">'PARTITION'</span> <span class="kw">AS</span> NSE_LEVEL
+    <span class="kw">FROM</span> M_TABLE_PARTITIONS <span class="kw">WHERE</span> LOAD_UNIT <span class="op">=</span> <span class="str">'PAGE'</span>
+),
+all_nse <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> SCHEMA_NAME, TABLE_NAME <span class="kw">FROM</span> nse_table_level <span class="kw">UNION</span>
+    <span class="kw">SELECT</span> SCHEMA_NAME, TABLE_NAME <span class="kw">FROM</span> nse_column_level <span class="kw">UNION</span>
+    <span class="kw">SELECT</span> SCHEMA_NAME, TABLE_NAME <span class="kw">FROM</span> nse_partition_level
+),
+nse_levels <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> SCHEMA_NAME, TABLE_NAME,
+        <span class="fn">STRING_AGG</span>(NSE_LEVEL, <span class="str">'+'</span>) <span class="kw">AS</span> NSE_APPLIED_AT
+    <span class="kw">FROM</span> (
+        <span class="kw">SELECT</span> * <span class="kw">FROM</span> nse_table_level <span class="kw">UNION ALL</span>
+        <span class="kw">SELECT</span> * <span class="kw">FROM</span> nse_column_level <span class="kw">UNION ALL</span>
+        <span class="kw">SELECT</span> * <span class="kw">FROM</span> nse_partition_level)
+    <span class="kw">GROUP BY</span> SCHEMA_NAME, TABLE_NAME
+),
+tmem <span class="kw">AS</span> (
+    <span class="kw">SELECT</span> SCHEMA_NAME, TABLE_NAME,
+        <span class="fn">SUM</span>(MEMORY_SIZE_IN_TOTAL) <span class="kw">AS</span> MEM,
+        <span class="fn">SUM</span>(MEMORY_SIZE_IN_PAGE_LOADABLE_MAIN) <span class="kw">AS</span> BUF,
+        <span class="fn">SUM</span>(RECORD_COUNT) <span class="kw">AS</span> RECS
+    <span class="kw">FROM</span> M_CS_TABLES <span class="kw">GROUP BY</span> SCHEMA_NAME, TABLE_NAME
+)
+<span class="kw">SELECT</span>
+    a.SCHEMA_NAME, a.TABLE_NAME,
+    nl.NSE_APPLIED_AT,
+    <span class="fn">IFNULL</span>(t.LOAD_UNIT, <span class="str">'DEFAULT'</span>)       <span class="kw">AS</span> TABLE_LOAD_UNIT,
+    <span class="fn">IFNULL</span>(tm.RECS, <span class="num">0</span>)                   <span class="kw">AS</span> ROW_COUNT,
+    <span class="fn">ROUND</span>(<span class="fn">IFNULL</span>(tm.MEM,<span class="num">0</span>)/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">2</span>)  <span class="kw">AS</span> MEMORY_MB,
+    <span class="fn">ROUND</span>(<span class="fn">IFNULL</span>(tm.BUF,<span class="num">0</span>)/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">2</span>)  <span class="kw">AS</span> BUFFER_CACHE_MB,
+    <span class="fn">ROUND</span>(<span class="fn">IFNULL</span>(ps.DISK_SIZE,<span class="num">0</span>)/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">2</span>) <span class="kw">AS</span> DISK_MB
+<span class="kw">FROM</span> all_nse a
+    <span class="kw">LEFT JOIN</span> TABLES t <span class="kw">ON</span> a.SCHEMA_NAME<span class="op">=</span>t.SCHEMA_NAME <span class="kw">AND</span> a.TABLE_NAME<span class="op">=</span>t.TABLE_NAME
+    <span class="kw">LEFT JOIN</span> tmem tm <span class="kw">ON</span> a.SCHEMA_NAME<span class="op">=</span>tm.SCHEMA_NAME <span class="kw">AND</span> a.TABLE_NAME<span class="op">=</span>tm.TABLE_NAME
+    <span class="kw">LEFT JOIN</span> nse_levels nl <span class="kw">ON</span> a.SCHEMA_NAME<span class="op">=</span>nl.SCHEMA_NAME <span class="kw">AND</span> a.TABLE_NAME<span class="op">=</span>nl.TABLE_NAME
+    <span class="kw">LEFT JOIN</span> M_TABLE_PERSISTENCE_STATISTICS ps
+        <span class="kw">ON</span> a.SCHEMA_NAME<span class="op">=</span>ps.SCHEMA_NAME <span class="kw">AND</span> a.TABLE_NAME<span class="op">=</span>ps.TABLE_NAME
+<span class="kw">ORDER BY</span> <span class="fn">IFNULL</span>(tm.MEM, <span class="num">0</span>) <span class="kw">DESC</span>;</pre></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon green">Q2</div><h3>All Partitioned Tables — Summary + Per-Partition Detail</h3></div>
+    <p style="font-size:.83rem;color:var(--text-secondary);margin-bottom:.8rem">Full partition inventory with types, columns, range labels, row counts, memory, disk, and data temperature.</p>
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Partition detail report</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="kw">SELECT</span>
+    tp.SCHEMA_NAME, tp.TABLE_NAME, tp.PART_ID,
+    tp.LEVEL_1_TYPE, tp.LEVEL_1_EXPRESSION <span class="kw">AS</span> L1_COLS,
+    <span class="fn">IFNULL</span>(tp.LEVEL_1_RANGE_MIN_VALUE, <span class="str">''</span>) <span class="kw">AS</span> L1_MIN,
+    <span class="fn">IFNULL</span>(tp.LEVEL_1_RANGE_MAX_VALUE, <span class="str">''</span>) <span class="kw">AS</span> L1_MAX,
+    tp.LEVEL_2_TYPE, tp.LEVEL_2_EXPRESSION <span class="kw">AS</span> L2_COLS,
+    <span class="fn">IFNULL</span>(tp.LOAD_UNIT, <span class="str">'DEFAULT'</span>)       <span class="kw">AS</span> PART_LOAD_UNIT,
+    <span class="fn">IFNULL</span>(cs.RECORD_COUNT, <span class="num">0</span>)            <span class="kw">AS</span> ROWS,
+    <span class="fn">ROUND</span>(<span class="fn">IFNULL</span>(cs.MEMORY_SIZE_IN_TOTAL,<span class="num">0</span>)/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">2</span>) <span class="kw">AS</span> MEM_MB,
+    <span class="fn">ROUND</span>(<span class="fn">IFNULL</span>(cs.MEMORY_SIZE_IN_PAGE_LOADABLE_MAIN,<span class="num">0</span>)
+        /<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">2</span>) <span class="kw">AS</span> BUFFER_MB,
+    <span class="fn">IFNULL</span>(cs.LOADED, <span class="str">'?'</span>) <span class="kw">AS</span> LOADED,
+    <span class="kw">CASE WHEN</span> <span class="fn">IFNULL</span>(tp.LOAD_UNIT,<span class="str">'COLUMN'</span>) <span class="op">=</span> <span class="str">'PAGE'</span>
+         <span class="kw">THEN</span> <span class="str">'WARM'</span> <span class="kw">ELSE</span> <span class="str">'HOT'</span>
+    <span class="kw">END AS</span> TEMPERATURE
+<span class="kw">FROM</span> TABLE_PARTITIONS tp
+    <span class="kw">LEFT JOIN</span> M_CS_TABLES cs
+        <span class="kw">ON</span> tp.SCHEMA_NAME<span class="op">=</span>cs.SCHEMA_NAME
+       <span class="kw">AND</span> tp.TABLE_NAME<span class="op">=</span>cs.TABLE_NAME
+       <span class="kw">AND</span> tp.PART_ID<span class="op">=</span>cs.PART_ID
+    <span class="kw">INNER JOIN</span> TABLES t
+        <span class="kw">ON</span> tp.SCHEMA_NAME<span class="op">=</span>t.SCHEMA_NAME
+       <span class="kw">AND</span> tp.TABLE_NAME<span class="op">=</span>t.TABLE_NAME
+       <span class="kw">AND</span> t.IS_COLUMN_TABLE<span class="op">=</span><span class="str">'TRUE'</span>
+       <span class="kw">AND</span> t.IS_PARTITIONED<span class="op">=</span><span class="str">'TRUE'</span>
+<span class="kw">ORDER BY</span> tp.SCHEMA_NAME, tp.TABLE_NAME, tp.PART_ID;</pre></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon amber">Q3</div><h3>Buffer Cache Health Check</h3></div>
+    <div class="sql-block"><div class="sql-header"><span class="sql-title">Buffer cache + OOB events</span><button class="sql-copy" onclick="copySql(this)">Copy</button></div>
+<pre class="sql-code"><span class="cm">-- Buffer cache overview</span>
+<span class="kw">SELECT</span> CACHE_NAME,
+    <span class="fn">ROUND</span>(USED_SIZE/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">0</span>)  <span class="kw">AS</span> USED_MB,
+    <span class="fn">ROUND</span>(MAX_SIZE/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">0</span>)   <span class="kw">AS</span> MAX_MB,
+    <span class="fn">ROUND</span>(USED_SIZE*<span class="num">100.0</span> / <span class="fn">NULLIF</span>(MAX_SIZE, <span class="num">0</span>), <span class="num">2</span>) <span class="kw">AS</span> FILL_PCT,
+    HIT_RATIO, OUT_OF_BUFFER_COUNT
+<span class="kw">FROM</span> M_BUFFER_CACHE_STATISTICS;
+
+<span class="cm">-- Out-Of-Buffer events</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> M_EVENTS <span class="kw">WHERE</span> TYPE <span class="op">=</span> <span class="str">'OUT_OF_BUFFERS'</span>;
+
+<span class="cm">-- NSE Advisor top recommendations</span>
+<span class="kw">SELECT</span> SCHEMA_NAME, TABLE_NAME, COLUMN_NAME,
+    GRANULARITY, CONFIDENCE,
+    <span class="fn">ROUND</span>(MEMORY_SIZE_IN_MAIN/<span class="num">1024</span>/<span class="num">1024</span>/<span class="num">1024</span>, <span class="num">2</span>) <span class="kw">AS</span> SIZE_GB
+<span class="kw">FROM</span> M_CS_NSE_ADVISOR
+<span class="kw">WHERE</span> CONFIDENCE <span class="op">!=</span> <span class="str">'-1'</span>
+<span class="kw">ORDER BY</span> CONFIDENCE <span class="kw">DESC</span>;</pre></div>
+  </div>
+</div>
+
+<!-- ──────── PARAMETERS ──────── -->
+<div class="section" id="params">
+  <div class="section-head">
+    <div class="section-tag">Configuration</div>
+    <h2>INI Parameters Reference</h2>
+    <p>All dynamic parameters — take effect immediately with WITH RECONFIGURE (no restart needed)</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon cyan">⚙</div><h3>NSE & Buffer Cache Parameters</h3></div>
+    <div style="overflow-x:auto">
+    <table class="param-table">
+      <thead><tr><th>INI File</th><th>Section</th><th>Parameter</th><th>Default</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">global.ini</td><td class="mono">buffer_cache_cs</td><td><code>max_size</code></td><td>unset</td><td>Absolute buffer cache size in MB</td></tr>
+        <tr><td class="mono">global.ini</td><td class="mono">buffer_cache_cs</td><td><code>max_size_rel</code></td><td>10 (%)</td><td>Buffer cache as % of total memory</td></tr>
+        <tr><td class="mono">global.ini</td><td class="mono">buffer_cache_cs</td><td><code>unload_threshold</code></td><td>80 (%)</td><td>LRU eviction trigger fill level</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">buffer_cache_cs</td><td><code>async_prealloc_in_chunks_enabled</code></td><td>false</td><td>Async memory preallocation for cache</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">cs_access_statistics</td><td><code>collection_enabled</code></td><td>false</td><td>Enable NSE Advisor data collection</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">cs_nse_advisor</td><td><code>min_object_size</code></td><td>1048576</td><td>Min size (bytes) for NSE Advisor analysis</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">cs_nse_advisor</td><td><code>min_row_count</code></td><td>10000</td><td>Min rows for NSE Advisor analysis</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon green">⚙</div><h3>Partitioning Parameters</h3></div>
+    <div style="overflow-x:auto">
+    <table class="param-table">
+      <thead><tr><th>INI File</th><th>Section</th><th>Parameter</th><th>Default</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">partitioning</td><td><code>split_threads</code></td><td>16</td><td>Parallel threads for partition split operations</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">partitioning</td><td><code>split_history_parallel</code></td><td>no</td><td>Parallel history table split</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">partitioning</td><td><code>bulk_load_threads</code></td><td>4</td><td>Threads for bulk load during repartitioning</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">partitioning</td><td><code>allow_dynamic_range_partitioning</code></td><td>true</td><td>Enable dynamic range partitioning globally</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">partitioning</td><td><code>dynamic_range_default_threshold</code></td><td>10000000</td><td>Default row threshold for dynamic split</td></tr>
+        <tr><td class="mono">indexserver.ini</td><td class="mono">partitioning</td><td><code>dynamic_range_check_time_interval_sec</code></td><td>900</td><td>How often to check OTHERS for threshold breach</td></tr>
+        <tr><td class="mono">global.ini</td><td class="mono">table_placement</td><td><code>max_partitions</code></td><td>12</td><td>Max auto-partitions per table (table placement)</td></tr>
+        <tr><td class="mono">global.ini</td><td class="mono">table_placement</td><td><code>max_rows_per_partition</code></td><td>2000000000</td><td>Max rows per partition (2B hard limit)</td></tr>
+        <tr><td class="mono">global.ini</td><td class="mono">table_placement</td><td><code>same_num_partitions</code></td><td>true</td><td>Uniform partition counts across hosts</td></tr>
+        <tr><td class="mono">global.ini</td><td class="mono">table_placement</td><td><code>max_partitions_limited_by_locations</code></td><td>true</td><td>Limit partitions by available index server count</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="sap-note">
+    <div class="sap-note-icon">⚑</div>
+    <div><strong>Layer priority:</strong> DEFAULT &lt; SYSTEM &lt; DATABASE &lt; HOST. Use SYSTEM layer for most settings. When both <code>max_size</code> (absolute) and <code>max_size_rel</code> (percentage) are set, the <strong>smaller value</strong> wins.</div>
+  </div>
+</div>
+
+<!-- ──────── SYSTEM VIEWS ──────── -->
+<div class="section" id="views">
+  <div class="section-head">
+    <div class="section-tag">Reference</div>
+    <h2>Key System Views</h2>
+    <p>The views that power your NSE and partitioning monitoring</p>
+  </div>
+
+  <div class="card">
+    <div style="overflow-x:auto">
+    <table class="comp-table">
+      <thead><tr><th>View</th><th>Purpose</th><th>Key Columns</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">M_CS_TABLES</td><td>Runtime column store data (1 row per partition)</td><td class="mono">LOAD_UNIT, MEMORY_SIZE_IN_TOTAL, MEMORY_SIZE_IN_PAGE_LOADABLE_MAIN, RECORD_COUNT, PART_ID</td></tr>
+        <tr><td class="mono">M_CS_ALL_COLUMNS</td><td>Per-column runtime details inc. buffer cache</td><td class="mono">LOAD_UNIT, MEMORY_SIZE_IN_PAGE_LOADABLE_MAIN</td></tr>
+        <tr><td class="mono">TABLE_COLUMNS</td><td>Catalog column definitions</td><td class="mono">LOAD_UNIT</td></tr>
+        <tr><td class="mono">TABLES</td><td>Catalog table metadata</td><td class="mono">IS_PARTITIONED, LOAD_UNIT</td></tr>
+        <tr><td class="mono">TABLE_PARTITIONS</td><td>Catalog partition definitions + ranges</td><td class="mono">LEVEL_1_TYPE, LEVEL_1_EXPRESSION, RANGE values, LOAD_UNIT</td></tr>
+        <tr><td class="mono">M_TABLE_PARTITIONS</td><td>Runtime partition info — <strong>most reliable LOAD_UNIT</strong></td><td class="mono">LOAD_UNIT (accurate for partition-level NSE)</td></tr>
+        <tr><td class="mono">M_TABLE_PERSISTENCE_STATISTICS</td><td>Table-level disk size</td><td class="mono">DISK_SIZE</td></tr>
+        <tr><td class="mono">M_TABLE_PERSISTENCE_LOCATION_STATISTICS</td><td>Per-partition disk size</td><td class="mono">DISK_SIZE, PART_ID</td></tr>
+        <tr><td class="mono">M_BUFFER_CACHE_STATISTICS</td><td>Buffer cache health</td><td class="mono">MAX_SIZE, USED_SIZE, HIT_RATIO, OUT_OF_BUFFER_COUNT</td></tr>
+        <tr><td class="mono">M_CS_NSE_ADVISOR</td><td>NSE Advisor recommendations</td><td class="mono">CONFIDENCE, GRANULARITY, MEMORY_SIZE_IN_MAIN</td></tr>
+        <tr><td class="mono">M_CS_COLUMNS_PERSISTENCE</td><td>Persistence format per column</td><td class="mono">PERSISTENCE_TYPE ('UNIFIED' in SPS 08)</td></tr>
+        <tr><td class="mono">M_EVENTS</td><td>System events inc. OOB</td><td class="mono">TYPE = 'OUT_OF_BUFFERS'</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="sap-note">
+    <div class="sap-note-icon">⚑</div>
+    <div><strong>Known issue (KBA 3012138):</strong> <code>M_CS_TABLES.LOAD_UNIT</code> may incorrectly show 'COLUMN' when NSE is activated only at partition level. Always use <code>M_TABLE_PARTITIONS</code> for partition-level load unit checks.</div>
+  </div>
+</div>
+
+</main>
+
+<footer class="footer">
+  SAP HANA 2.0 SPS 08 Reference · NSE & Table Partitioning · Generated March 2026
+</footer>
+
+<script>
+// ═══ NAV ═══
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.section).classList.add('active');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  });
+});
+
+// ═══ INNER TABS ═══
+document.querySelectorAll('.inner-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const parent = tab.closest('.section');
+    parent.querySelectorAll('.inner-tab').forEach(t => t.classList.remove('active'));
+    parent.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.pane).classList.add('active');
+  });
+});
+
+// ═══ COPY SQL ═══
+function copySql(btn) {
+  const code = btn.closest('.sql-block').querySelector('.sql-code');
+  const text = code.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// ═══ CHECKLIST ═══
+function toggleCheck(el) {
+  el.classList.toggle('done');
+  if (el.classList.contains('done')) el.textContent = '✓';
+  else el.textContent = '';
+  el.nextElementSibling.classList.toggle('done');
+}
+
+// ═══ IMPLEMENTATION STEPS ═══
+const implStepData = [
+  {title:'Phase 1 — System Pre-Checks', body:'Verify HANA version, persistence format, current memory utilization, and available disk space before proceeding.'},
+  {title:'Phase 2 — Planning & Assessment', body:'Enable NSE Advisor (cs_access_statistics.collection_enabled = true) for 7+ days. Analyze M_CS_NSE_ADVISOR recommendations. Identify warm data candidates: statistics server tables, technical tables (EDID4, BALDAT, DBTABLOG), and historical partitions.'},
+  {title:'Phase 3 — Execute Migration', body:'Convert partitioning to heterogeneous syntax if needed. Set buffer cache size (12.5%+ of warm data). Enable NSE on identified candidates — start with non-critical tables first. Test query performance.'},
+  {title:'Phase 4 — Ongoing Monitoring', body:'Monitor every 6 months: buffer cache hit ratio (target > 95%), OOB event count (target = 0), NSE Advisor for new candidates, and adjust buffer cache as warm data grows.'}
+];
+function showImplStep(idx) {
+  document.querySelectorAll('.impl-step').forEach((s,i) => s.classList.toggle('active', i===idx));
+  const d = implStepData[idx];
+  document.getElementById('implDetail').innerHTML = `<div class="impl-detail"><h4>${d.title}</h4><p style="font-size:.85rem;color:var(--text-secondary)">${d.body}</p></div>`;
+}
+
+// ═══ BUFFER CACHE SIMULATOR ═══
+function runSimulator() {
+  const mem = +document.getElementById('simMemory').value;
+  const data = +document.getElementById('simDataSize').value;
+  const warmPct = +document.getElementById('simWarmPct').value;
+  const cachePct = +document.getElementById('simCachePct').value;
+  const warmSize = (data * warmPct / 100);
+  const hotSize = data - warmSize;
+  const bufSize = (mem * cachePct / 100);
+  const ratio = warmSize > 0 ? (warmSize / bufSize) : 0;
+  const savings = warmPct;
+  const meetsGuide = ratio <= 8;
+  document.getElementById('simBufSize').innerHTML = bufSize.toFixed(1) + '<span class="sim-metric-unit">GB</span>';
+  document.getElementById('simWarmSize').innerHTML = warmSize.toFixed(0) + '<span class="sim-metric-unit">GB</span>';
+  document.getElementById('simHotSize').innerHTML = hotSize.toFixed(0) + '<span class="sim-metric-unit">GB</span>';
+  document.getElementById('simRatio').textContent = '1:' + ratio.toFixed(1);
+  document.getElementById('simSavings').innerHTML = savings + '<span class="sim-metric-unit">%</span>';
+  const okEl = document.getElementById('simOk');
+  if (meetsGuide) { okEl.textContent = '✓ YES'; okEl.style.color = 'var(--accent-green)'; }
+  else { okEl.textContent = '✗ NO (increase cache)'; okEl.style.color = 'var(--accent-rose)'; }
+  const hotPct = ((1 - warmPct/100) * 100);
+  document.getElementById('simBarHot').style.width = hotPct + '%';
+  document.getElementById('simBarLabel').textContent = hotPct.toFixed(0) + '% hot · ' + warmPct + '% warm (on disk)';
+}
+
+// ═══ DECISION TREE: PARTITION TYPE ═══
+const partTree = {
+  id:'q1', question:'Does the table have a primary key?',
+  choices:[
+    {label:'Yes — has PK', next:{
+      id:'q2', question:'Do you need time-based or value-based data lifecycle management?',
+      choices:[
+        {label:'Yes — lifecycle needed', next:{
+          id:'q3', question:'Do you also need load-balancing across hosts (scale-out)?',
+          choices:[
+            {label:'Yes — both', result:{title:'HASH + RANGE (Multi-Level)',desc:'Use HASH for distribution across hosts, RANGE as second level for lifecycle management. PK column for HASH, date/year column for RANGE. Supports per-partition NSE with SPS 08.'}},
+            {label:'No — lifecycle only', result:{title:'RANGE Partitioning',desc:'Partition by date or fiscal year. Supports OTHERS partition, dynamic range (THRESHOLD/INTERVAL), and heterogeneous per-partition NSE. Best for sliding window patterns.'}}
+          ]
+        }},
+        {label:'No — performance only', next:{
+          id:'q4', question:'Are your queries always filtered on the same column(s)?',
+          choices:[
+            {label:'Yes — predictable filters', result:{title:'HASH Partitioning',desc:'Partition by the frequently filtered PK column(s). Ensures pruning when ALL hash columns appear with = or IN. Use GET_NUM_SERVERS() for scale-out.'}},
+            {label:'Mixed / unpredictable', result:{title:'RANGE on Most Common Filter',desc:'RANGE partitioning on the most common filter column gives the broadest pruning support (works with =, <, >, BETWEEN, IN). Add OTHERS for safety.'}}
+          ]
+        }}
+      ]
+    }},
+    {label:'No — no PK', next:{
+      id:'q5', question:'Do you need time-based lifecycle management?',
+      choices:[
+        {label:'Yes', result:{title:'ROUNDROBIN + RANGE (Multi-Level)',desc:'First level ROUNDROBIN for distribution (no PK needed), second level RANGE for lifecycle. Note: ROUNDROBIN never prunes — all partitions always scanned.'}},
+        {label:'No — just load balance', result:{title:'ROUNDROBIN Partitioning',desc:'Simple rotation-based distribution. No partition pruning ever occurs — all partitions are always scanned. Best for staging tables, ETL landing zones.'}}
+      ]
+    }}
+  ]
+};
+
+const nseTree = {
+  id:'n1', question:'Is the entire table infrequently accessed?',
+  choices:[
+    {label:'Yes — whole table is cold', result:{title:'Table-Level NSE',desc:'Use ALTER TABLE ... PAGE LOADABLE. Simplest approach. Entire table moves to warm storage. Good for: statistics server tables, audit logs, technical tables (EDID4, BALDAT, DBTABLOG).'}},
+    {label:'No — mixed access patterns', next:{
+      id:'n2', question:'Is the access pattern time-based? (recent = hot, historical = cold)',
+      choices:[
+        {label:'Yes — time-based', result:{title:'Partition-Level NSE',desc:'Use heterogeneous partitioning with mixed load units. Current year(s) COLUMN LOADABLE, historical partitions PAGE LOADABLE. Requires RANGE or multi-level partitioning with heterogeneous syntax (double parentheses).'}},
+        {label:'No — column-based', next:{
+          id:'n3', question:'Are there specific large columns rarely queried? (BLOBs, comments, logs)',
+          choices:[
+            {label:'Yes — identifiable columns', result:{title:'Column-Level NSE',desc:'Use ALTER TABLE ... ALTER ("col" ALTER PAGE LOADABLE). Keeps frequently queried columns in DRAM while offloading large rarely-read columns. Non-blocking conversion available (SPS 05+).'}},
+            {label:'No — uniform columns', result:{title:'Table-Level NSE or No NSE',desc:'If no clear warm data pattern exists, either apply table-level NSE if the whole table is low-priority, or keep it column-loadable. Run NSE Advisor for 7+ days to get data-driven recommendations.'}}
+          ]
+        }}
+      ]
+    }}
+  ]
+};
+
+function renderDT(container, tree) {
+  function show(node) {
+    if (node.result) {
+      container.innerHTML = `<div class="dt-result"><h4>→ ${node.result.title}</h4><p>${node.result.desc}</p></div><button class="dt-reset" onclick="renderDT(document.getElementById('${container.id}'), ${container.id === 'partDT' ? 'partTree' : 'nseTree'})">↺ Start Over</button>`;
+      return;
+    }
+    let html = `<div class="dt-node highlight"><div class="dt-question">${node.question}</div><div class="dt-choices">`;
+    node.choices.forEach((c, i) => {
+      html += `<button class="dt-btn" data-idx="${i}">${c.label}</button>`;
+    });
+    html += '</div></div>';
+    container.innerHTML = html;
+    container.querySelectorAll('.dt-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const choice = node.choices[+btn.dataset.idx];
+        if (choice.result) show(choice);
+        else if (choice.next) show(choice.next);
+      });
+    });
+  }
+  show(tree);
+}
+renderDT(document.getElementById('partDT'), partTree);
+renderDT(document.getElementById('nseDT'), nseTree);
+
+// Initialize simulator
+runSimulator();
+</script>
+</body>
+</html>

@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP HANA & S/4HANA Performance Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #111827;
+  --bg-card: #1a2233;
+  --bg-card-hover: #1f2b3f;
+  --bg-elevated: #243049;
+  --border: #2a3a52;
+  --border-glow: #3b82f680;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+  --accent-pink: #ec4899;
+  --layer-os: #f97316;
+  --layer-db: #06b6d4;
+  --layer-abap: #8b5cf6;
+  --layer-network: #10b981;
+  --layer-cross: #f59e0b;
+  --glow-blue: 0 0 20px #3b82f620, 0 0 40px #3b82f610;
+  --glow-cyan: 0 0 20px #06b6d420;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* SCANLINE OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* TOP NAV */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: linear-gradient(180deg, #0d1320 0%, #0d1320ee 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.topbar-brand {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.topbar-brand .sigil {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700; font-size: 14px; color: #fff;
+}
+
+.topbar-brand h1 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px; font-weight: 600;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.topbar-brand .version {
+  font-size: 11px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg-card); padding: 2px 8px; border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.topbar-nav {
+  display: flex; gap: 4px;
+}
+
+.topbar-nav button {
+  background: transparent; border: 1px solid transparent;
+  color: var(--text-secondary); font-size: 13px;
+  font-family: 'DM Sans', sans-serif; font-weight: 500;
+  padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  transition: all 0.2s;
+}
+
+.topbar-nav button:hover, .topbar-nav button.active {
+  background: var(--bg-card); border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.topbar-nav button.active {
+  border-color: var(--accent-blue);
+  color: var(--accent-cyan);
+}
+
+/* MAIN LAYOUT */
+main { margin-top: 56px; }
+
+.section {
+  display: none; padding: 32px 24px;
+  max-width: 1440px; margin: 0 auto;
+  animation: fadeIn 0.3s ease;
+}
+
+.section.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* SECTION HEADERS */
+.section-header {
+  margin-bottom: 28px;
+}
+
+.section-header h2 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px; font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.section-header p {
+  color: var(--text-secondary); font-size: 14px;
+}
+
+/* CARDS */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: all 0.25s;
+}
+
+.card:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--glow-blue);
+}
+
+/* GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+@media (max-width: 1200px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .topbar-nav { display: none; }
+}
+
+/* ============================
+   SECTION 1: OVERVIEW / DASHBOARD
+   ============================ */
+.overview-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-card .stat-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.stat-card .stat-label {
+  font-size: 12px; color: var(--text-muted);
+  margin-top: 4px; text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* LAYER ARCHITECTURE DIAGRAM */
+.arch-diagram {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  margin-bottom: 24px;
+}
+
+.arch-diagram h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+
+.arch-layers {
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.arch-layer {
+  display: flex; align-items: stretch; gap: 12px;
+  border-radius: var(--radius);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.arch-layer:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+}
+
+.arch-layer.selected {
+  border-color: var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.05);
+}
+
+.arch-layer-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 4px;
+  border-radius: 4px;
+  min-width: 28px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.arch-layer[data-layer="abap"] .arch-layer-label {
+  background: rgba(139, 92, 246, 0.15); color: var(--layer-abap);
+}
+.arch-layer[data-layer="db"] .arch-layer-label {
+  background: rgba(6, 182, 212, 0.15); color: var(--layer-db);
+}
+.arch-layer[data-layer="os"] .arch-layer-label {
+  background: rgba(249, 115, 22, 0.15); color: var(--layer-os);
+}
+.arch-layer[data-layer="network"] .arch-layer-label {
+  background: rgba(16, 185, 129, 0.15); color: var(--layer-network);
+}
+
+.arch-layer-tools {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  flex: 1;
+}
+
+.arch-tool-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.arch-tool-chip:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--accent-cyan);
+}
+
+/* ============================
+   SECTION 2: REFERENCE TABLE
+   ============================ */
+.search-bar {
+  display: flex; gap: 12px; margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-bar input {
+  flex: 1; min-width: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  color: var(--text-primary);
+  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  border-color: var(--accent-blue);
+}
+
+.search-bar input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-chips {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+
+.filter-chip {
+  font-size: 12px; font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.filter-chip:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.filter-chip.active {
+  border-color: var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent-cyan);
+}
+
+/* DATA TABLE */
+.data-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table thead {
+  background: var(--bg-elevated);
+}
+
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.data-table th:hover { color: var(--text-secondary); }
+.data-table th .sort-arrow { margin-left: 4px; opacity: 0.4; }
+.data-table th.sorted .sort-arrow { opacity: 1; color: var(--accent-cyan); }
+
+.data-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.data-table tbody tr {
+  transition: background 0.15s;
+}
+
+.data-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.data-table .tool-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+}
+
+.layer-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.layer-badge.abap { background: rgba(139,92,246,0.15); color: var(--layer-abap); }
+.layer-badge.db { background: rgba(6,182,212,0.15); color: var(--layer-db); }
+.layer-badge.os { background: rgba(249,115,22,0.15); color: var(--layer-os); }
+.layer-badge.network { background: rgba(16,185,129,0.15); color: var(--layer-network); }
+.layer-badge.cross { background: rgba(245,158,11,0.15); color: var(--layer-cross); }
+
+.result-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ============================
+   SECTION 3: DECISION TREE
+   ============================ */
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.scenario-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.scenario-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.scenario-card:hover::before { opacity: 1; }
+
+.scenario-card:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+  box-shadow: var(--glow-blue);
+}
+
+.scenario-card .scenario-icon {
+  font-size: 24px; margin-bottom: 12px;
+}
+
+.scenario-card h4 {
+  font-size: 15px; font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.scenario-card p {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.scenario-card .workflow-steps {
+  display: none;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.scenario-card.expanded .workflow-steps {
+  display: block;
+}
+
+.workflow-step {
+  display: flex; gap: 12px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.workflow-step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 700;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.workflow-step-text {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.workflow-step-text code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--bg-secondary);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--accent-cyan);
+}
+
+.expand-hint {
+  font-size: 11px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ============================
+   SECTION 4: SQL LIBRARY
+   ============================ */
+.sql-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.sql-card-header {
+  padding: 16px 20px;
+  display: flex; justify-content: space-between;
+  align-items: center; cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sql-card-header:hover { background: var(--bg-card-hover); }
+
+.sql-card-header h4 {
+  font-size: 14px; font-weight: 600;
+}
+
+.sql-card-header .sql-tags {
+  display: flex; gap: 6px;
+}
+
+.sql-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  padding: 2px 8px; border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.sql-tag.memory { background: rgba(239,68,68,0.12); color: var(--accent-red); }
+.sql-tag.performance { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
+.sql-tag.locks { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+.sql-tag.storage { background: rgba(16,185,129,0.12); color: var(--accent-green); }
+.sql-tag.alerts { background: rgba(236,72,153,0.12); color: var(--accent-pink); }
+.sql-tag.io { background: rgba(139,92,246,0.12); color: var(--accent-purple); }
+.sql-tag.threads { background: rgba(6,182,212,0.12); color: var(--accent-cyan); }
+
+.sql-card-body {
+  display: none;
+  padding: 0 20px 16px;
+}
+
+.sql-card.expanded .sql-card-body { display: block; }
+
+.sql-description {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 12px; line-height: 1.6;
+}
+
+.sql-block {
+  background: #0d1117;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+  overflow-x: auto;
+}
+
+.sql-block pre {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; line-height: 1.7;
+  color: #c9d1d9;
+  white-space: pre;
+  margin: 0;
+}
+
+.sql-block .kw { color: #ff7b72; }
+.sql-block .fn { color: #d2a8ff; }
+.sql-block .str { color: #a5d6ff; }
+.sql-block .num { color: #79c0ff; }
+.sql-block .cm { color: #8b949e; font-style: italic; }
+.sql-block .col { color: #7ee787; }
+
+.copy-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px; font-family: 'JetBrains Mono', monospace;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.copy-btn:hover {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+
+.copy-btn.copied {
+  background: var(--accent-green);
+  color: #fff;
+  border-color: var(--accent-green);
+}
+
+/* ============================
+   SECTION 5: SAP NOTES
+   ============================ */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 12px;
+}
+
+.note-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex; gap: 14px;
+  transition: all 0.2s;
+}
+
+.note-card:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-card-hover);
+}
+
+.note-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 700;
+  color: var(--accent-amber);
+  white-space: nowrap;
+  min-width: 70px;
+}
+
+.note-info h5 {
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.note-info p {
+  font-size: 12px; color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.note-category {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.note-category.config { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
+.note-category.memory { background: rgba(239,68,68,0.12); color: var(--accent-red); }
+.note-category.sql { background: rgba(6,182,212,0.12); color: var(--accent-cyan); }
+.note-category.tracing { background: rgba(139,92,246,0.12); color: var(--accent-purple); }
+.note-category.s4hana { background: rgba(16,185,129,0.12); color: var(--accent-green); }
+.note-category.sps08 { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+.note-category.methodology { background: rgba(236,72,153,0.12); color: var(--accent-pink); }
+
+/* ============================
+   SECTION 6: THRESHOLDS
+   ============================ */
+.threshold-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.threshold-table th {
+  background: var(--bg-elevated);
+  padding: 12px 16px;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.threshold-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.threshold-table td:first-child {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.threshold-warn {
+  color: var(--accent-amber) !important;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+.threshold-crit {
+  color: var(--accent-red) !important;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+/* ============================
+   SECTION 7: MONITORING CADENCE
+   ============================ */
+.cadence-timeline {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.cadence-col {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.cadence-col-header {
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cadence-col[data-freq="realtime"] .cadence-col-header {
+  background: linear-gradient(90deg, rgba(239,68,68,0.1), transparent);
+  color: var(--accent-red);
+}
+.cadence-col[data-freq="daily"] .cadence-col-header {
+  background: linear-gradient(90deg, rgba(245,158,11,0.1), transparent);
+  color: var(--accent-amber);
+}
+.cadence-col[data-freq="weekly"] .cadence-col-header {
+  background: linear-gradient(90deg, rgba(59,130,246,0.1), transparent);
+  color: var(--accent-blue);
+}
+.cadence-col[data-freq="monthly"] .cadence-col-header {
+  background: linear-gradient(90deg, rgba(16,185,129,0.1), transparent);
+  color: var(--accent-green);
+}
+
+.cadence-items {
+  padding: 12px;
+}
+
+.cadence-item {
+  font-size: 12px; color: var(--text-secondary);
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  transition: background 0.15s;
+  line-height: 1.5;
+}
+
+.cadence-item:hover { background: var(--bg-elevated); }
+
+.cadence-item code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--accent-cyan);
+  background: var(--bg-secondary);
+  padding: 1px 4px; border-radius: 2px;
+}
+
+/* DETAIL PANEL */
+.detail-panel {
+  display: none;
+  position: fixed;
+  top: 56px; right: 0; bottom: 0;
+  width: 480px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  z-index: 90;
+  overflow-y: auto;
+  padding: 24px;
+  animation: slideIn 0.25s ease;
+  box-shadow: -10px 0 40px rgba(0,0,0,0.3);
+}
+
+.detail-panel.open { display: block; }
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.detail-panel .close-btn {
+  position: absolute; top: 16px; right: 16px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); width: 28px; height: 28px;
+  border-radius: 6px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+
+.detail-panel h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px; margin-bottom: 4px;
+}
+
+.detail-panel .detail-layer {
+  margin-bottom: 20px;
+}
+
+.detail-section {
+  margin-bottom: 20px;
+}
+
+.detail-section h5 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.detail-section p, .detail-section li {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.detail-section ul {
+  list-style: none; padding: 0;
+}
+
+.detail-section li {
+  padding: 3px 0 3px 16px;
+  position: relative;
+}
+
+.detail-section li::before {
+  content: '›';
+  position: absolute; left: 0;
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--accent-green);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 13px; font-weight: 500;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 200;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="sigil">SC</div>
+    <h1>SAP PERFORMANCE COMMAND CENTER</h1>
+    <span class="version">HANA 2.0 SP8+ / S4</span>
+  </div>
+  <div class="topbar-nav">
+    <button class="active" onclick="showSection('overview')">Overview</button>
+    <button onclick="showSection('reference')">Reference DB</button>
+    <button onclick="showSection('scenarios')">Scenarios</button>
+    <button onclick="showSection('sql')">SQL Library</button>
+    <button onclick="showSection('notes')">SAP Notes</button>
+    <button onclick="showSection('thresholds')">Thresholds</button>
+    <button onclick="showSection('cadence')">Cadence</button>
+  </div>
+</div>
+
+<main>
+
+<!-- ========== OVERVIEW SECTION ========== -->
+<div id="sec-overview" class="section active">
+  <div class="section-header">
+    <h2>System Monitoring Architecture</h2>
+    <p>Every SAP-provided trace, monitor, and diagnostic tool mapped by layer. Click any tool for details.</p>
+  </div>
+
+  <div class="overview-stats" id="overview-stats"></div>
+
+  <div class="arch-diagram">
+    <h3>Stack Layers &amp; Tool Mapping</h3>
+    <div class="arch-layers" id="arch-layers"></div>
+  </div>
+
+  <div class="section-header" style="margin-top:8px">
+    <h2>Quick Layer Reference</h2>
+  </div>
+  <div class="grid-4" id="layer-summary-cards"></div>
+</div>
+
+<!-- ========== REFERENCE TABLE SECTION ========== -->
+<div id="sec-reference" class="section">
+  <div class="section-header">
+    <h2>Complete Tool Reference Database</h2>
+    <p>Every transaction code, monitoring view, and trace — searchable and filterable.</p>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="ref-search" placeholder="Search tools, transactions, views, or keywords..." oninput="filterTable()">
+  </div>
+  <div class="filter-chips" id="filter-chips"></div>
+  <div class="result-count" id="result-count"></div>
+  <div class="data-table-wrapper">
+    <table class="data-table" id="ref-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Tool <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(1)">Layer <span class="sort-arrow">↕</span></th>
+          <th onclick="sortTable(2)">Type <span class="sort-arrow">↕</span></th>
+          <th>Purpose</th>
+          <th>When to Use</th>
+          <th>How to Enable/Access</th>
+        </tr>
+      </thead>
+      <tbody id="ref-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ========== SCENARIOS SECTION ========== -->
+<div id="sec-scenarios" class="section">
+  <div class="section-header">
+    <h2>Troubleshooting Decision Tree</h2>
+    <p>Start from the symptom you're observing — click a scenario to reveal the recommended workflow.</p>
+  </div>
+  <div class="scenario-grid" id="scenario-grid"></div>
+</div>
+
+<!-- ========== SQL LIBRARY SECTION ========== -->
+<div id="sec-sql" class="section">
+  <div class="section-header">
+    <h2>Essential HANA SQL Query Library</h2>
+    <p>Copy-ready diagnostic queries for HANA 2.0 SP8+. Click to expand, copy to clipboard.</p>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="sql-search" placeholder="Search queries by name or tag..." oninput="filterSQL()">
+  </div>
+  <div id="sql-cards"></div>
+</div>
+
+<!-- ========== SAP NOTES SECTION ========== -->
+<div id="sec-notes" class="section">
+  <div class="section-header">
+    <h2>Critical SAP Notes Reference</h2>
+    <p>The most important SAP Notes for HANA 2.0 SP8+ and S/4HANA performance — organized by category.</p>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="notes-search" placeholder="Search notes by number, title, or keyword..." oninput="filterNotes()">
+  </div>
+  <div class="filter-chips" id="notes-filter-chips"></div>
+  <div class="notes-grid" id="notes-grid"></div>
+</div>
+
+<!-- ========== THRESHOLDS SECTION ========== -->
+<div id="sec-thresholds" class="section">
+  <div class="section-header">
+    <h2>Performance Thresholds &amp; Benchmarks</h2>
+    <p>Reference values for healthy, warning, and critical states across all layers.</p>
+  </div>
+  <div class="data-table-wrapper">
+    <table class="threshold-table" id="threshold-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Layer</th>
+          <th>Warning</th>
+          <th>Critical</th>
+          <th>Context</th>
+        </tr>
+      </thead>
+      <tbody id="threshold-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ========== CADENCE SECTION ========== -->
+<div id="sec-cadence" class="section">
+  <div class="section-header">
+    <h2>Monitoring Cadence Schedule</h2>
+    <p>What to check and when — from real-time alerts to monthly capacity reviews.</p>
+  </div>
+  <div class="cadence-timeline" id="cadence-timeline"></div>
+</div>
+
+</main>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detail-panel">
+  <button class="close-btn" onclick="closeDetail()">×</button>
+  <div id="detail-content"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">Copied to clipboard</div>
+
+<script>
+// ================ DATA ================
+
+const ALL_TOOLS = [
+  // ABAP LAYER - Transactions
+  {name:"ST05",layer:"abap",type:"Transaction",purpose:"SQL/RFC/Enqueue/Buffer/HTTP trace recorder",when:"Slow DB queries, missing indexes, SELECT-in-loops, buffer misses",enable:"Run ST05 → select trace type → Activate with Filter (user/process) → Execute problem → Deactivate → Display Trace",notes:["755977"],detail:"Records every SQL statement from ABAP with microsecond timing. Filter by user to avoid overflow. Use 'Structure Identical' to detect N+1 queries. REOPEN counts reveal missing FOR ALL ENTRIES."},
+  {name:"ST12",layer:"cross",type:"Transaction",purpose:"Combined ABAP + SQL single transaction analysis",when:"Top-down analysis of any slow transaction — the primary entry point",enable:"ST12 → enter user/task → Activate Both Traces → execute transaction → Collect → Analyze",notes:["755977","2436955","3212479"],detail:"Preferred tool for SAP support engagements. Shows time split between ABAP processing, DB time, GUI time, RFC time. Determines whether bottleneck is HANA-layer or ABAP-layer."},
+  {name:"SAT",layer:"abap",type:"Transaction",purpose:"ABAP runtime profiler (successor to SE30)",when:"CPU-bound ABAP issues — when ST05 shows low DB time but high response time",enable:"SAT → select program/transaction → create measurement variant → Execute → Evaluate",notes:["2524975"],detail:"Profiles ABAP at statement level: CPU per method, call hierarchy, internal table operations, memory. Hit List (aggregated) for top consumers; Call Hierarchy for execution flow."},
+  {name:"SQLM",layer:"cross",type:"Transaction",purpose:"Long-running system-wide SQL monitor (weeks of collection)",when:"Post-migration optimization, system-wide SQL audit, proactive tuning",enable:"SQLM → Activate for all servers → set duration (7+ days) → auto-schedules RTM_COLLECT_ALL job. Analyze via SQLMD. <3% overhead.",notes:["1885926","3242700","3100598"],detail:"Traces every Open SQL and Native SQL system-wide, aggregated by SQL + code position + request entry point. Export to dev for SWLT (SQL Performance Tuning Worklist)."},
+  {name:"ST02",layer:"abap",type:"Transaction",purpose:"Buffer and memory statistics",when:"Buffer hit ratio drops below 98%, swap activity detected",enable:"Run ST02 → review all buffer areas → check Detail Analysis for swaps and directory sizes",notes:[],detail:"All buffer hit ratios should be ≥98%. Swaps should be 0 or near 0. PRIV mode processes consume extended memory — visible here and in SM50."},
+  {name:"ST03/ST03N",layer:"abap",type:"Transaction",purpose:"Workload analysis — aggregated response time statistics",when:"Overall health check, trend analysis, instance comparison, monthly review",enable:"ST03N → select period (day/week/month) → select instance → analyze dialog/RFC/background step statistics",notes:[],detail:"Shows avg dialog response time decomposition: processing, DB request, wait, roll, GUI time. Core tool for capacity planning and baseline comparison."},
+  {name:"ST04",layer:"db",type:"Transaction",purpose:"Database performance monitor (DBA Cockpit shortcut)",when:"Need HANA-specific performance data from ABAP GUI",enable:"Run ST04 → navigates to DBACOCKPIT performance area",notes:[],detail:"Quick access to SQL Plan Cache, Expensive Statements, HANA threads, and memory overview from the ABAP layer."},
+  {name:"ST06",layer:"os",type:"Transaction",purpose:"OS-level CPU, memory, disk, and network monitoring",when:"Suspected OS-level bottleneck — high CPU, swap activity, I/O wait",enable:"Run ST06 → review current snapshot and historical data → Detail Analysis for per-CPU and per-disk breakdown",notes:[],detail:"CPU idle <20% = bottleneck. Any swap activity on HANA host = memory pressure. High I/O wait = storage bottleneck."},
+  {name:"SM50",layer:"abap",type:"Transaction",purpose:"Local instance work process monitor",when:"Immediate triage — see what all work processes are doing right now",enable:"Run SM50 → observe Status, Action, Table, Client, User columns → double-click for SQL detail",notes:[],detail:"Status PRIV = heap memory exhaustion. Stopped/DB lock = database lock waits. Action 'Sequential Read' on same table for extended time = expensive SQL."},
+  {name:"SM66",layer:"abap",type:"Transaction",purpose:"Global work process monitor (all instances)",when:"First tool during system-wide slowness — 30-second triage",enable:"Run SM66 → view all work processes across all application server instances",notes:[],detail:"All DIA processes occupied = work process shortage. Shows user, program, table, action for every running process across the landscape."},
+  {name:"SM04",layer:"abap",type:"Transaction",purpose:"User session overview",when:"Excessive sessions, identify idle lock holders, memory per user",enable:"Run SM04 → sort by memory or sessions → identify excessive usage",notes:[],detail:"Shows number of sessions per user, memory consumption, and active transactions. Useful for identifying users holding enqueue locks."},
+  {name:"SM12",layer:"abap",type:"Transaction",purpose:"Enqueue lock monitor (SAP logical locks)",when:"Lock contention, orphaned locks, users unable to edit objects",enable:"Run SM12 → display all locks → filter by age/user/object → delete orphaned locks if confirmed",notes:[],detail:"Shows ABAP-layer logical locks. Locks >1 day old are likely orphaned. Always verify with the lock owner before deletion."},
+  {name:"SM13",layer:"abap",type:"Transaction",purpose:"Update record monitor — V1/V2 update status",when:"Failed transactions, update system deactivated, V1 errors",enable:"Run SM13 → filter by date/status/user → review failed update records",notes:[],detail:"Failed V1 updates cause transaction rollback. Status 'Err' requires investigation. Deactivated update system is a critical alert."},
+  {name:"SM21",layer:"abap",type:"Transaction",purpose:"System log — errors, warnings, and events",when:"Daily review, after incidents, application errors, connection issues",enable:"Run SM21 → filter by time/severity/message class → review red entries",notes:[],detail:"Red entries = critical. Search for SYSTEM_CORE_DUMP, connection errors, authorization failures, and application-specific error codes."},
+  {name:"SM37",layer:"abap",type:"Transaction",purpose:"Background job monitor",when:"Failed/cancelled background jobs, scheduling issues, long-running jobs",enable:"Run SM37 → filter by status (cancelled/failed) → review job log → combine with STAD for performance data",notes:[],detail:"Job logs contain timestamped messages and return codes. Cancelled status requires root cause analysis via ST22 or job log."},
+  {name:"SM58",layer:"abap",type:"Transaction",purpose:"Transactional RFC (tRFC) error log",when:"RFC communication failures, stuck LUWs, system integration errors",enable:"Run SM58 → filter by status (CPICERR/SYSFAIL) → investigate destination → re-execute if appropriate",notes:[],detail:"CPICERR = communication failure (network/system down). SYSFAIL = application error at receiver. Check SM59 for destination health."},
+  {name:"SM59",layer:"network",type:"Transaction",purpose:"RFC destination configuration and test",when:"RFC connection failures, latency testing, destination configuration",enable:"Run SM59 → select destination → Connection Test → review response time and auth",notes:[],detail:"Connection Test verifies network, authorization, and basic RFC functionality. Response time >200ms indicates network issue."},
+  {name:"SMQ1",layer:"abap",type:"Transaction",purpose:"Outbound qRFC queue monitor",when:"Growing outbound queue depth, stuck messages, integration failures",enable:"Run SMQ1 → review queue status → look for SYSFAIL/CPICERR entries",notes:[],detail:"Queued messages awaiting outbound transmission. Growing depth = receiver system down or processing error. SMQR for scheduler status."},
+  {name:"SMQ2",layer:"abap",type:"Transaction",purpose:"Inbound qRFC queue monitor",when:"Growing inbound queue depth, processing failures",enable:"Run SMQ2 → review queue status → investigate stuck entries",notes:[],detail:"Queued messages received but not yet processed. Check application logs for processing errors."},
+  {name:"SMQR",layer:"abap",type:"Transaction",purpose:"qRFC scheduler registration",when:"Queue processing stopped, scheduler inactive",enable:"Run SMQR → verify schedulers are registered and active",notes:[],detail:"If no scheduler is registered for a destination, queued messages will never be processed."},
+  {name:"ST22",layer:"abap",type:"Transaction",purpose:"ABAP dump analysis (short dumps)",when:"Daily review, application crashes, TIME_OUT, memory exhaustion",enable:"Run ST22 → filter by date → sort by frequency → analyze top dump types",notes:[],detail:"Key dump types: TIME_OUT (exceeded time limit), TSV_TNEW_PAGE_ALLOC_FAILED (memory), MESSAGE_TYPE_X (program error), COMMUNICATION_FAILURE (RFC)."},
+  {name:"STAD",layer:"abap",type:"Transaction",purpose:"Per-dialog-step statistical records",when:"Post-execution analysis of specific transaction steps",enable:"Run STAD → filter by user/date/transaction → review response time breakdown per step",notes:[],detail:"Shows wall-clock timing decomposition: processing, DB request, wait, roll, load, GUI time for each individual dialog step."},
+  {name:"DBACOCKPIT",layer:"cross",type:"Transaction",purpose:"Full HANA DBA cockpit — the most comprehensive ABAP-based HANA monitor",when:"Daily DBA monitoring, SQL analysis, thread/lock investigation, parameter review",enable:"Run DBACOCKPIT → navigate Performance, Diagnostics, Configuration sections",notes:["2222220"],detail:"Includes: SQL Plan Cache, Expensive Statements, Threads, Locks, Blocked Transactions, Heap Usage, Alerts, SQL Editor, Parameter Recommendations (2600030 compliance)."},
+  {name:"DB02",layer:"db",type:"Transaction",purpose:"Table/index space analysis and growth",when:"Disk space issues, table growth monitoring, missing index detection",enable:"Run DB02 → review table sizes, growth trends → run SHDB_INDEX_ANALYZE for missing indexes",notes:["1794297"],detail:"Shows table sizes, index sizes, growth over time. SHDB_INDEX_ANALYZE recommends secondary indexes based on SQL workload."},
+  {name:"RZ20",layer:"abap",type:"Transaction",purpose:"CCMS monitoring tree — centralized alerting",when:"Centralized green/yellow/red alert overview across all components",enable:"Run RZ20 → select monitoring set → drill into alert tree",notes:[],detail:"Aggregates alerts from all SAP components into a hierarchical tree with color-coded severity."},
+  {name:"/SDF/SMON",layer:"abap",type:"Transaction",purpose:"System snapshot monitoring (periodic state captures)",when:"Historical analysis of system state — WPs, memory, users, response times",enable:"/SDF/SMON → configure collection interval (e.g., 60 sec) → schedule background job → display via /SDF/SMON_DISPLAY",notes:["2651881"],detail:"Takes periodic snapshots: work processes, memory, active users, SQL, response times. Graphical charting via /SDF/SMON_DISPLAY. S/4HANA NW 7.5+."},
+  {name:"SMICM",layer:"network",type:"Transaction",purpose:"ICM (Internet Communication Manager) monitor",when:"HTTP/HTTPS issues, Fiori connectivity, web service timeouts",enable:"Run SMICM → review status, thread utilization → Goto → Trace Level for HTTP tracing",notes:["2007212"],detail:"Shows ICM thread utilization, cache hit rate, active connections. Trace level 2 captures headers, level 3 captures bodies."},
+  {name:"SMGW",layer:"network",type:"Transaction",purpose:"Gateway monitor — RFC connections and registered programs",when:"RFC connectivity issues, external program registration, gateway errors",enable:"Run SMGW → review active connections → Goto → Trace for gateway trace",notes:[],detail:"Shows active RFC connections, registered external programs, and gateway error log."},
+  {name:"WE02/WE05",layer:"abap",type:"Transaction",purpose:"IDoc monitoring — status, type, partner filtering",when:"IDoc processing failures, integration monitoring",enable:"Run WE02 or WE05 → filter by status/type/date/partner → investigate error statuses",notes:[],detail:"Status codes: 01-42 outbound, 50-75 inbound. Status 51 = ready for dispatch, 53 = posted. Error statuses require reprocessing via BD87."},
+  {name:"BD87",layer:"abap",type:"Transaction",purpose:"ALE centralized IDoc monitoring and reprocessing",when:"Centralized IDoc error handling and mass reprocessing",enable:"Run BD87 → filter by status/type → select failed IDocs → reprocess",notes:[],detail:"Central point for ALE monitoring across all message types."},
+  // HANA Layer - Views/Traces
+  {name:"M_SERVICE_MEMORY",layer:"db",type:"HANA View",purpose:"Memory utilization per HANA service",when:"Memory pressure alerts, capacity planning, OOM investigation",enable:"Query via SQL Console or DBACOCKPIT SQL Editor",notes:["1999997"],detail:"Key columns: USED_MEMORY_SIZE, EFFECTIVE_ALLOCATION_LIMIT, PEAK_USED_MEMORY_SIZE. Calculate USED_PCT = USED/LIMIT × 100. Warning at 80%, critical at 90%."},
+  {name:"M_HEAP_MEMORY",layer:"db",type:"HANA View",purpose:"Memory breakdown by internal allocator",when:"Identifying which HANA component consumes memory during OOM",enable:"Query via SQL Console",notes:["1999997"],detail:"Key allocators: Pool/ColumnStore, Pool/RowEngine, Pool/PersistenceManager, Pool/itab. Group by CATEGORY for high-level breakdown."},
+  {name:"M_CS_TABLES",layer:"db",type:"HANA View",purpose:"Column store table sizes, record counts, memory distribution",when:"Identifying large tables, delta store buildup, memory consumers",enable:"Query via SQL Console",notes:["2057046"],detail:"Split between MEMORY_SIZE_IN_MAIN and MEMORY_SIZE_IN_DELTA reveals merge candidates. RECORD_COUNT approaching 2 billion = partitioning needed."},
+  {name:"M_SQL_PLAN_CACHE",layer:"db",type:"HANA View",purpose:"Cached SQL execution plans with cumulative stats",when:"Identifying top resource-consuming SQL system-wide",enable:"Query via SQL Console or DBACOCKPIT → Performance → SQL Plan Cache",notes:["2039883","2000002"],detail:"Cumulative stats: execution count, total/avg time, lock wait, records. Unlike M_EXPENSIVE_STATEMENTS, shows aggregated data, not individual executions."},
+  {name:"M_EXPENSIVE_STATEMENTS",layer:"db",type:"HANA View",purpose:"Individual expensive SQL executions with timestamps",when:"'What exactly ran at 14:32 when the system was slow?'",enable:"Must be enabled (ALTER SYSTEM). Query via SQL or DBACOCKPIT.",notes:["2180165"],detail:"Only trace with per-execution timestamps, bind values, and memory/CPU metrics. SAP recommends permanent activation. Threshold default 1 second."},
+  {name:"M_BLOCKED_TRANSACTIONS",layer:"db",type:"HANA View",purpose:"Currently blocked transactions (real-time lock waits)",when:"Lock contention incidents — users unable to proceed",enable:"Query via SQL Console",notes:[],detail:"Shows blocked connection, lock owner, lock type, wait duration. Most important view during lock contention events."},
+  {name:"M_SERVICE_THREADS",layer:"db",type:"HANA View",purpose:"Active threads by state, duration, and type",when:"CPU analysis, blocked thread investigation, parallelism review",enable:"Query via SQL Console",notes:["2114710"],detail:"Thread states: Running = CPU. Mutex/Semaphore Wait = blocked. Job Exec Waiting = idle. Long duration + wait state = blocking situation."},
+  {name:"M_VOLUME_IO_TOTAL_STATISTICS",layer:"db",type:"HANA View",purpose:"I/O latency and throughput per volume type",when:"I/O performance validation, storage KPI compliance",enable:"Query via SQL Console",notes:["1999930"],detail:"Calculate avg_read_time = TOTAL_READ_TIME/TOTAL_READS. SAP TDI KPI: log write ≤1ms for 4KB/16KB. Data read target ≤2ms."},
+  {name:"M_DELTA_MERGE_STATISTICS",layer:"db",type:"HANA View",purpose:"Delta merge history — success, duration, motivation",when:"Merge failures, growing delta stores, column store maintenance",enable:"Query via SQL Console",notes:["2057046","2894395"],detail:"Check error_code ≠ 0 for failures. Motivations: AUTO, SMART, CRITICAL, HARD, MANUAL. Long durations indicate large delta stores."},
+  {name:"M_CONNECTIONS",layer:"db",type:"HANA View",purpose:"All database connections — active, idle, internal",when:"Connection leak investigation, session management",enable:"Query via SQL Console",notes:[],detail:"Excessive idle connections indicate connection pool misconfiguration or application leaks."},
+  {name:"M_HOST_RESOURCE_UTILIZATION",layer:"os",type:"HANA View",purpose:"OS-level resources from HANA perspective",when:"Physical memory, swap, CPU usage from DB layer",enable:"Query via SQL Console",notes:[],detail:"Any swap activity on HANA host = immediate investigation needed."},
+  {name:"STATISTICS_CURRENT_ALERTS",layer:"db",type:"HANA View",purpose:"Current HANA alerts with severity ratings",when:"Proactive monitoring — daily health check",enable:"SELECT * FROM _SYS_STATISTICS.STATISTICS_CURRENT_ALERTS WHERE ALERT_RATING >= 3",notes:["2147247"],detail:"Ratings: 1=Info, 2=Low, 3=Medium, 4=High, 5=Critical. Alert 1=CPU, 2=Memory, 3=Disk, 4=Service Down, 5=Delta Merge, 17=Long SQL."},
+  {name:"M_ACTIVE_STATEMENTS",layer:"db",type:"HANA View",purpose:"Currently executing SQL statements",when:"Real-time identification of running queries",enable:"Query via SQL Console",notes:[],detail:"Shows connection ID, runtime, and SQL text for all currently executing statements."},
+  {name:"M_WORKLOAD",layer:"db",type:"HANA View",purpose:"Aggregate workload metrics including rollback ratios",when:"Overall DB workload health, commit/rollback analysis",enable:"Query via SQL Console",notes:[],detail:"High rollback percentage indicates locking or application problems."},
+  {name:"Expensive Stmt Trace",layer:"db",type:"HANA Trace",purpose:"Continuous capture of SQL exceeding duration/memory thresholds",when:"Should be always on — recommended permanent activation",enable:"ALTER SYSTEM ALTER CONFIGURATION ('global.ini','SYSTEM') SET ('expensive_statement','enable') = 'true' WITH RECONFIGURE",notes:["2180165"],detail:"Negligible overhead. Default threshold: 1,000,000 µs (1 sec). Also supports memory threshold. Results in M_EXPENSIVE_STATEMENTS."},
+  {name:"HANA DB Trace",layer:"db",type:"HANA Trace",purpose:"OS-level diagnosis trace files per HANA component",when:"Deep database troubleshooting, crash analysis, component debugging",enable:"HANA Studio/Cockpit → Trace Configuration → set component trace levels (default ERROR). Files at /usr/sap/<SID>/HDB<inst>/<host>/trace/",notes:["2380176"],detail:"5 levels: NONE, ERROR, WARNING, INFO, DEBUG. User-specific tracing available SPS03+. Increase maxfiles before DEBUG."},
+  {name:"HANA SQL Trace",layer:"db",type:"HANA Trace",purpose:"Full SQL capture — every statement (very high overhead)",when:"Short targeted analysis when expensive statements trace is insufficient",enable:"ALTER SYSTEM ALTER CONFIGURATION ('indexserver.ini','SYSTEM') SET ('sqltrace','trace') = 'true' WITH RECONFIGURE. Disable immediately after.",notes:[],detail:"Records ALL SQL — extremely high overhead. Filter by user. Suitable only for minutes, not hours."},
+  {name:"PlanViz",layer:"db",type:"HANA Tool",purpose:"Visual SQL execution plan analysis",when:"Understanding join order, operator selection, partition pruning",enable:"HANA Studio → SQL Console → Execute → right-click → Visualize Plan. Or EXPLAIN PLAN FOR <SQL>.",notes:["2000002"],detail:"Shows execution graph with operators, data flow, record counts, time distribution. Essential for identifying plan regressions."},
+];
+
+const SCENARIOS = [
+  {icon:"🐌",title:"Slow Individual Transaction",symptom:"Single transaction/report takes too long",steps:[
+    {tool:"ST03",text:"Check response time breakdown — is it DB, ABAP, GUI, or wait time?"},
+    {tool:"ST05",text:"Activate SQL trace filtered to user. Execute problem. Deactivate. Analyze by Duration."},
+    {tool:"ST12",text:"Combined ABAP+SQL trace — determines if HANA-layer or ABAP-layer bottleneck."},
+    {tool:"SAT",text:"If CPU-bound (low DB time), profile ABAP code to find hotspots."},
+    {tool:"PlanViz",text:"For expensive SQL found in ST05, visualize execution plan to check index usage and join order."},
+    {tool:"SQLM/SWLT",text:"If systemic pattern, enable SQLM for broader collection and use SWLT worklist."},
+  ]},
+  {icon:"🔥",title:"System-Wide Slowness",symptom:"All users affected, everything slow",steps:[
+    {tool:"SM66",text:"Immediate triage — are all DIA work processes occupied? What are they doing?"},
+    {tool:"ST06",text:"Check OS: CPU utilization, swap activity, I/O wait percentage."},
+    {tool:"ST03",text:"Workload overview — compare to normal baseline. Which step types degraded?"},
+    {tool:"DBACOCKPIT",text:"DB performance overview — SQL plan cache top consumers, thread analysis."},
+    {tool:"M_SERVICE_THREADS",text:"HANA thread states — Running=CPU, Mutex Wait=blocking."},
+    {tool:"SM21",text:"System log for errors, connection issues, core dumps."},
+    {tool:"/SDF/SMON",text:"Historical snapshots — compare current state to normal periods."},
+  ]},
+  {icon:"💾",title:"High HANA Memory",symptom:"Memory alerts, approaching allocation limit, OOM risk",steps:[
+    {tool:"M_SERVICE_MEMORY",text:"Which service (indexserver, nameserver) is consuming memory?"},
+    {tool:"M_HEAP_MEMORY",text:"Which allocator? Pool/ColumnStore, Pool/RowEngine, Pool/itab?"},
+    {tool:"M_CS_TABLES",text:"Top 20 tables by MEMORY_SIZE_IN_TOTAL — any unexpected growth?"},
+    {tool:"SAP Note 1969700",text:"Run HANA_Memory_TopConsumers SQL from the SQL Statement Collection."},
+    {tool:"M_DELTA_MERGE_STATISTICS",text:"Failed merges causing delta store buildup?"},
+    {tool:"Check MVCC",text:"Long-running transactions preventing garbage collection? M_TRANSACTIONS."},
+  ]},
+  {icon:"🔒",title:"Lock Contention",symptom:"Users blocked, transactions hanging, lock waits",steps:[
+    {tool:"SM12",text:"SAP enqueue locks — check age, mode, owner. Delete orphaned locks."},
+    {tool:"SM66",text:"Identify blocked work processes (Status: Stopped, Reason: DB lock)."},
+    {tool:"M_BLOCKED_TRANSACTIONS",text:"HANA-level locks — blocked connection, lock owner, wait time."},
+    {tool:"M_LOCK_WAITS_STATISTICS",text:"Historical lock wait trend analysis."},
+    {tool:"Cancel if needed",text:"ALTER SYSTEM DISCONNECT SESSION '<conn_id>' — last resort."},
+  ]},
+  {icon:"⚡",title:"High CPU on HANA DB",symptom:"HANA host CPU consistently high",steps:[
+    {tool:"M_SERVICE_THREADS",text:"Identify CPU-consuming threads — what SQL are they executing?"},
+    {tool:"M_SERVICE_THREAD_SAMPLES",text:"Historical thread activity pattern."},
+    {tool:"M_EXPENSIVE_STATEMENTS",text:"Which statements consumed CPU in the problem window?"},
+    {tool:"SAP Note 1969700",text:"Run HANA_Threads_ThreadSamples analysis SQL."},
+    {tool:"Check parallelism",text:"Review max_concurrency (SPS08: global.ini → execution → max_concurrency)."},
+    {tool:"OS top",text:"Confirm with OS-level top/htop on DB host."},
+  ]},
+  {icon:"💿",title:"I/O Bottleneck",symptom:"High I/O wait, slow savepoints, long table loads",steps:[
+    {tool:"ST06",text:"Check I/O wait percentage — should be <5% normally."},
+    {tool:"M_VOLUME_IO_TOTAL_STATISTICS",text:"Calculate read/write latency per volume. Log ≤1ms, Data ≤2ms."},
+    {tool:"M_SAVEPOINTS",text:"Critical phase duration — should be microseconds, not milliseconds."},
+    {tool:"HWCCT",text:"SAP Note 1943937 — Hardware Configuration Check Tool for storage validation."},
+    {tool:"OS iostat/sar",text:"OS-level I/O statistics for per-disk analysis."},
+  ]},
+  {icon:"📡",title:"RFC / Communication Errors",symptom:"Integration failures, RFC timeouts, stuck queues",steps:[
+    {tool:"SM58",text:"tRFC error log — CPICERR (network) vs SYSFAIL (application)."},
+    {tool:"SM59",text:"Destination connection test — network, auth, response time."},
+    {tool:"ST22",text:"COMMUNICATION_FAILURE dump analysis."},
+    {tool:"SMQ1/SMQ2/SMQR",text:"qRFC queue status — depth growing? Scheduler active?"},
+    {tool:"SMGW",text:"Gateway monitor — active connections, registered programs."},
+  ]},
+  {icon:"📊",title:"Poor CDS View / Fiori Performance",symptom:"Slow Fiori apps, CDS view timeouts",steps:[
+    {tool:"ST05",text:"SQL trace on CDS execution — identify generated SQL."},
+    {tool:"SQLM/SWLT",text:"SQL Monitor for CDS view SQL patterns across the system."},
+    {tool:"PlanViz",text:"Execution plan for CDS-generated SQL — check join order, indexes."},
+    {tool:"/IWFND/ERROR_LOG",text:"OData gateway errors."},
+    {tool:"SAT",text:"ABAP runtime if CDS involves ABAP-managed data processing."},
+    {tool:"SAP Note 3418693",text:"CDS view optimization examples for S/4HANA."},
+  ]},
+  {icon:"🔄",title:"Post-Upgrade Regression",symptom:"Performance degraded after upgrade/migration",steps:[
+    {tool:"ST03",text:"Compare pre/post workload statistics (avg response time, throughput)."},
+    {tool:"SWLT",text:"Identify new expensive SQLs introduced by the upgrade."},
+    {tool:"M_SQL_PLAN_CACHE",text:"Compare execution plans — plan regression detection."},
+    {tool:"ST05/ST12",text:"Trace regressed transactions specifically."},
+    {tool:"ST22",text:"New dump patterns introduced by the upgrade."},
+    {tool:"Plan Cache Reset",text:"Consider ALTER SYSTEM CLEAR SQL PLAN CACHE if widespread plan regression."},
+  ]},
+];
+
+const SQL_QUERIES = [
+  {title:"Top 10 Memory-Consuming Tables",tags:["memory","storage"],desc:"Identifies the largest column store tables by total memory footprint. Run daily or when investigating memory pressure.",
+   sql:`SELECT TOP 10 SCHEMA_NAME, TABLE_NAME,
+  ROUND(MEMORY_SIZE_IN_TOTAL/1024/1024,2) AS TOTAL_MB,
+  ROUND(MEMORY_SIZE_IN_DELTA/1024/1024,2) AS DELTA_MB,
+  RECORD_COUNT
+FROM M_CS_TABLES
+ORDER BY MEMORY_SIZE_IN_TOTAL DESC;`,raw:`SELECT TOP 10 SCHEMA_NAME, TABLE_NAME,\n  ROUND(MEMORY_SIZE_IN_TOTAL/1024/1024,2) AS TOTAL_MB,\n  ROUND(MEMORY_SIZE_IN_DELTA/1024/1024,2) AS DELTA_MB,\n  RECORD_COUNT\nFROM M_CS_TABLES\nORDER BY MEMORY_SIZE_IN_TOTAL DESC;`},
+  {title:"Delta Merge Candidates (Large Delta Stores)",tags:["storage","performance"],desc:"Tables with significant data in delta store that may benefit from merge. Large deltas degrade read performance.",
+   sql:`SELECT SCHEMA_NAME, TABLE_NAME,
+  RAW_RECORD_COUNT_IN_DELTA AS DELTA_ROWS,
+  ROUND(MEMORY_SIZE_IN_DELTA/1024/1024,2) AS DELTA_MB,
+  LAST_MERGE_TIME
+FROM M_CS_TABLES
+WHERE RAW_RECORD_COUNT_IN_DELTA > 0
+ORDER BY MEMORY_SIZE_IN_DELTA DESC;`,raw:`SELECT SCHEMA_NAME, TABLE_NAME,\n  RAW_RECORD_COUNT_IN_DELTA AS DELTA_ROWS,\n  ROUND(MEMORY_SIZE_IN_DELTA/1024/1024,2) AS DELTA_MB,\n  LAST_MERGE_TIME\nFROM M_CS_TABLES\nWHERE RAW_RECORD_COUNT_IN_DELTA > 0\nORDER BY MEMORY_SIZE_IN_DELTA DESC;`},
+  {title:"Top 20 Expensive SQL from Plan Cache",tags:["performance"],desc:"System-wide top SQL consumers by total execution time. The single most important SQL performance query.",
+   sql:`SELECT TOP 20 STATEMENT_HASH,
+  EXECUTION_COUNT AS EXECS,
+  ROUND(TOTAL_EXECUTION_TIME/1000000,2) AS TOTAL_SEC,
+  ROUND(AVG_EXECUTION_TIME/1000,2) AS AVG_MS,
+  ROUND(TOTAL_LOCK_WAIT_TIME/1000000,2) AS LOCK_WAIT_SEC,
+  SUBSTR(STATEMENT_STRING,1,200) AS SQL_TEXT
+FROM M_SQL_PLAN_CACHE
+WHERE IS_VALID = 'TRUE'
+ORDER BY TOTAL_EXECUTION_TIME DESC;`,raw:`SELECT TOP 20 STATEMENT_HASH,\n  EXECUTION_COUNT AS EXECS,\n  ROUND(TOTAL_EXECUTION_TIME/1000000,2) AS TOTAL_SEC,\n  ROUND(AVG_EXECUTION_TIME/1000,2) AS AVG_MS,\n  ROUND(TOTAL_LOCK_WAIT_TIME/1000000,2) AS LOCK_WAIT_SEC,\n  SUBSTR(STATEMENT_STRING,1,200) AS SQL_TEXT\nFROM M_SQL_PLAN_CACHE\nWHERE IS_VALID = 'TRUE'\nORDER BY TOTAL_EXECUTION_TIME DESC;`},
+  {title:"Currently Blocked Transactions",tags:["locks"],desc:"Real-time view of HANA-level lock waits. Shows who is blocked, who is blocking, and for how long.",
+   sql:`SELECT BT.BLOCKED_CONNECTION_ID,
+  BT.LOCK_OWNER_CONNECTION_ID,
+  BT.LOCK_TYPE,
+  ROUND(BT.BLOCKED_TIME/1000,1) AS BLOCKED_MS,
+  C1.USER_NAME AS BLOCKED_USER,
+  C2.USER_NAME AS BLOCKER_USER
+FROM M_BLOCKED_TRANSACTIONS BT
+LEFT JOIN M_CONNECTIONS C1
+  ON BT.BLOCKED_CONNECTION_ID = C1.CONNECTION_ID
+LEFT JOIN M_CONNECTIONS C2
+  ON BT.LOCK_OWNER_CONNECTION_ID = C2.CONNECTION_ID
+ORDER BY BT.BLOCKED_TIME DESC;`,raw:`SELECT BT.BLOCKED_CONNECTION_ID,\n  BT.LOCK_OWNER_CONNECTION_ID,\n  BT.LOCK_TYPE,\n  ROUND(BT.BLOCKED_TIME/1000,1) AS BLOCKED_MS,\n  C1.USER_NAME AS BLOCKED_USER,\n  C2.USER_NAME AS BLOCKER_USER\nFROM M_BLOCKED_TRANSACTIONS BT\nLEFT JOIN M_CONNECTIONS C1\n  ON BT.BLOCKED_CONNECTION_ID = C1.CONNECTION_ID\nLEFT JOIN M_CONNECTIONS C2\n  ON BT.LOCK_OWNER_CONNECTION_ID = C2.CONNECTION_ID\nORDER BY BT.BLOCKED_TIME DESC;`},
+  {title:"Memory Breakdown by Service",tags:["memory"],desc:"Memory utilization percentage per HANA service. The first query to run for any memory investigation.",
+   sql:`SELECT SERVICE_NAME, HOST,
+  ROUND(USED_MEMORY_SIZE/1024/1024/1024,2) AS USED_GB,
+  ROUND(EFFECTIVE_ALLOCATION_LIMIT/1024/1024/1024,2) AS LIMIT_GB,
+  ROUND(USED_MEMORY_SIZE*100.0
+    /EFFECTIVE_ALLOCATION_LIMIT,1) AS USED_PCT
+FROM M_SERVICE_MEMORY
+ORDER BY USED_MEMORY_SIZE DESC;`,raw:`SELECT SERVICE_NAME, HOST,\n  ROUND(USED_MEMORY_SIZE/1024/1024/1024,2) AS USED_GB,\n  ROUND(EFFECTIVE_ALLOCATION_LIMIT/1024/1024/1024,2) AS LIMIT_GB,\n  ROUND(USED_MEMORY_SIZE*100.0\n    /EFFECTIVE_ALLOCATION_LIMIT,1) AS USED_PCT\nFROM M_SERVICE_MEMORY\nORDER BY USED_MEMORY_SIZE DESC;`},
+  {title:"I/O Latency per Volume",tags:["io","performance"],desc:"Average read/write latency per volume type. SAP TDI KPI: log write ≤1ms, data read ≤2ms.",
+   sql:`SELECT HOST, TYPE,
+  CASE WHEN TOTAL_READS > 0
+    THEN ROUND(TOTAL_READ_TIME/TOTAL_READS/1000,2)
+  END AS AVG_READ_MS,
+  CASE WHEN TOTAL_WRITES > 0
+    THEN ROUND(TOTAL_WRITE_TIME/TOTAL_WRITES/1000,2)
+  END AS AVG_WRITE_MS
+FROM M_VOLUME_IO_TOTAL_STATISTICS
+ORDER BY TYPE, HOST;`,raw:`SELECT HOST, TYPE,\n  CASE WHEN TOTAL_READS > 0\n    THEN ROUND(TOTAL_READ_TIME/TOTAL_READS/1000,2)\n  END AS AVG_READ_MS,\n  CASE WHEN TOTAL_WRITES > 0\n    THEN ROUND(TOTAL_WRITE_TIME/TOTAL_WRITES/1000,2)\n  END AS AVG_WRITE_MS\nFROM M_VOLUME_IO_TOTAL_STATISTICS\nORDER BY TYPE, HOST;`},
+  {title:"Active Long-Running Statements",tags:["performance","threads"],desc:"Currently executing SQL sorted by runtime. Use during real-time investigation of slow system.",
+   sql:`SELECT CONNECTION_ID,
+  ROUND(NANO100_BETWEEN(
+    LAST_ACTION_TIME,CURRENT_TIMESTAMP
+  )/10000000,1) AS RUNTIME_SEC,
+  SUBSTR(STATEMENT_STRING,1,200) AS SQL_TEXT
+FROM M_ACTIVE_STATEMENTS
+ORDER BY NANO100_BETWEEN(
+  LAST_ACTION_TIME,CURRENT_TIMESTAMP) DESC;`,raw:`SELECT CONNECTION_ID,\n  ROUND(NANO100_BETWEEN(\n    LAST_ACTION_TIME,CURRENT_TIMESTAMP\n  )/10000000,1) AS RUNTIME_SEC,\n  SUBSTR(STATEMENT_STRING,1,200) AS SQL_TEXT\nFROM M_ACTIVE_STATEMENTS\nORDER BY NANO100_BETWEEN(\n  LAST_ACTION_TIME,CURRENT_TIMESTAMP) DESC;`},
+  {title:"Current Alerts (Medium+ Severity)",tags:["alerts"],desc:"All active HANA alerts at medium severity or above. The core proactive monitoring query.",
+   sql:`SELECT ALERT_RATING, ALERT_ID,
+  ALERT_NAME, ALERT_DESCRIPTION,
+  ALERT_TIMESTAMP
+FROM _SYS_STATISTICS.STATISTICS_CURRENT_ALERTS
+WHERE ALERT_RATING >= 3
+ORDER BY ALERT_RATING DESC,
+  ALERT_TIMESTAMP DESC;`,raw:`SELECT ALERT_RATING, ALERT_ID,\n  ALERT_NAME, ALERT_DESCRIPTION,\n  ALERT_TIMESTAMP\nFROM _SYS_STATISTICS.STATISTICS_CURRENT_ALERTS\nWHERE ALERT_RATING >= 3\nORDER BY ALERT_RATING DESC,\n  ALERT_TIMESTAMP DESC;`},
+  {title:"Heap Memory Top Consumers",tags:["memory"],desc:"Breakdown of HANA heap memory by allocator category. Identifies which component drives memory pressure.",
+   sql:`SELECT CATEGORY,
+  ROUND(SUM(EXCLUSIVE_SIZE_IN_USE)
+    /1024/1024/1024,2) AS USED_GB,
+  ROUND(SUM(EXCLUSIVE_ALLOCATED_SIZE)
+    /1024/1024/1024,2) AS ALLOC_GB
+FROM M_HEAP_MEMORY
+WHERE EXCLUSIVE_SIZE_IN_USE > 0
+GROUP BY CATEGORY
+ORDER BY USED_GB DESC;`,raw:`SELECT CATEGORY,\n  ROUND(SUM(EXCLUSIVE_SIZE_IN_USE)\n    /1024/1024/1024,2) AS USED_GB,\n  ROUND(SUM(EXCLUSIVE_ALLOCATED_SIZE)\n    /1024/1024/1024,2) AS ALLOC_GB\nFROM M_HEAP_MEMORY\nWHERE EXCLUSIVE_SIZE_IN_USE > 0\nGROUP BY CATEGORY\nORDER BY USED_GB DESC;`},
+  {title:"Enable Expensive Statements Trace",tags:["performance"],desc:"Activate the expensive statements trace with recommended settings. SAP recommends permanent activation — negligible overhead.",
+   sql:`ALTER SYSTEM ALTER CONFIGURATION
+  ('global.ini','SYSTEM')
+SET ('expensive_statement','enable') = 'true',
+    ('expensive_statement','threshold_duration')
+      = '1000000',
+    ('expensive_statement','use_in_memory_tracing')
+      = 'true'
+WITH RECONFIGURE;`,raw:`ALTER SYSTEM ALTER CONFIGURATION\n  ('global.ini','SYSTEM')\nSET ('expensive_statement','enable') = 'true',\n    ('expensive_statement','threshold_duration')\n      = '1000000',\n    ('expensive_statement','use_in_memory_tracing')\n      = 'true'\nWITH RECONFIGURE;`},
+  {title:"Failed Delta Merges",tags:["storage","performance"],desc:"Identify column store tables where delta merges are failing. Failed merges cause delta store growth and read degradation.",
+   sql:`SELECT TABLE_NAME, SCHEMA_NAME,
+  MOTIVATION, ERROR_CODE, ERROR_DESCRIPTION,
+  EXECUTION_TIME,
+  MERGED_DELTA_RECORDS, START_TIME
+FROM M_DELTA_MERGE_STATISTICS
+WHERE SUCCESS = 'FALSE'
+ORDER BY START_TIME DESC;`,raw:`SELECT TABLE_NAME, SCHEMA_NAME,\n  MOTIVATION, ERROR_CODE, ERROR_DESCRIPTION,\n  EXECUTION_TIME,\n  MERGED_DELTA_RECORDS, START_TIME\nFROM M_DELTA_MERGE_STATISTICS\nWHERE SUCCESS = 'FALSE'\nORDER BY START_TIME DESC;`},
+];
+
+const SAP_NOTES = [
+  {num:"2600030",title:"Parameter Recommendations in SAP HANA Environments",cat:"config",desc:"THE most important configuration note. Apply to every SYSTEMDB + Tenant DB. Covers expensive statements, GC, concurrency."},
+  {num:"1969700",title:"SQL Statement Collection for SAP HANA",cat:"sql",desc:"Essential ZIP of analysis scripts (MiniChecks, memory, SQL cache, threads). Run HANA_Configuration_MiniChecks first."},
+  {num:"2000000",title:"FAQ: SAP HANA (Master Note)",cat:"config",desc:"Central starting point for ANY HANA performance investigation."},
+  {num:"2000002",title:"FAQ: SAP HANA SQL Optimization",cat:"sql",desc:"Top-down SQL analysis methodology. Plan cache interpretation, STATEMENT_HASH, plan visualizer, optimization techniques."},
+  {num:"2689405",title:"S/4HANA Performance Best Practices — Collective Note",cat:"s4hana",desc:"Master note for all S/4HANA module-specific performance: SD, MM, FI, CO, PP."},
+  {num:"1999997",title:"FAQ: SAP HANA Memory",cat:"memory",desc:"Memory monitoring, OOM analysis, M_SERVICE_MEMORY, M_HEAP_MEMORY, statement memory tracking."},
+  {num:"2100040",title:"FAQ: SAP HANA CPU",cat:"config",desc:"CPU analysis, thread activities. SPS08 changed parallelism to max_concurrency."},
+  {num:"1999930",title:"FAQ: SAP HANA I/O Analysis",cat:"config",desc:"I/O performance analysis, disk throughput, latency measurement."},
+  {num:"2100009",title:"FAQ: SAP HANA Savepoints",cat:"config",desc:"Savepoint blocking phases, I/O impact, critical phase duration."},
+  {num:"2180165",title:"FAQ: SAP HANA Expensive Statements Trace",cat:"tracing",desc:"Activation, thresholds, retention, permanent activation recommendation."},
+  {num:"2380176",title:"FAQ: SAP HANA Database Trace",cat:"tracing",desc:"Trace configuration, levels, file locations, session-specific tracing."},
+  {num:"2039883",title:"FAQ: SAP HANA SQL Plan Cache",cat:"sql",desc:"Plan cache management, invalidation, eviction, sizing."},
+  {num:"2114710",title:"FAQ: SAP HANA Threads and Thread Samples",cat:"tracing",desc:"Thread monitoring, sample collection, state analysis."},
+  {num:"755977",title:"ST12: ABAP Trace Documentation",cat:"tracing",desc:"Core ST12 documentation for combined ABAP+SQL trace collection."},
+  {num:"2436955",title:"How to Collect and Analyze Traces Using ST12",cat:"methodology",desc:"Step-by-step ST12 guide for performance analysis."},
+  {num:"1885926",title:"ABAP SQL Monitor (SQLM)",cat:"tracing",desc:"SQLM documentation, configuration, and analysis methodology."},
+  {num:"2651881",title:"How to Configure /SDF/SMON",cat:"config",desc:"System Snapshot Monitor setup, scheduling, and display configuration."},
+  {num:"2442365",title:"Survival Guide for Performance Analysis on SAP System",cat:"methodology",desc:"Comprehensive methodology document covering end-to-end performance analysis."},
+  {num:"2057046",title:"FAQ: SAP HANA Delta Merges",cat:"config",desc:"Merge mechanism, auto/manual/smart merge, monitoring, troubleshooting."},
+  {num:"2186744",title:"FAQ: SAP HANA Parameters",cat:"config",desc:"Parameter scopes, layer hierarchy, change tracking."},
+  {num:"2222250",title:"FAQ: SAP HANA Workload Management",cat:"config",desc:"Workload classes, admission control, concurrency limits."},
+  {num:"2382421",title:"Optimizing Network Configuration on HANA/OS Level",cat:"config",desc:"OS-level TCP tuning, THP settings (critical for SPS08)."},
+  {num:"1794297",title:"Secondary Indexes for S/4HANA and Business Suite on HANA",cat:"s4hana",desc:"Index recommendations; run SHDB_INDEX_ANALYZE."},
+  {num:"3418693",title:"Examples for Optimization of ABAP CDS Views",cat:"s4hana",desc:"CDS view optimization: hints, code, business logic approaches."},
+  {num:"3212479",title:"How to Identify HANA DB vs ABAP Performance Issue",cat:"methodology",desc:"Methodology for classifying bottleneck layer using ST12 results."},
+  {num:"3531605",title:"SAP HANA 2.0 SPS08 Rev 080.00 Release Note",cat:"sps08",desc:"Initial SPS08 release. HotNews issues advised against immediate production use."},
+  {num:"3586713",title:"SAP HANA 2.0 SPS08 Rev 085.00",cat:"sps08",desc:"Fixes 37 issues. Recommended minimum revision for SPS08 production systems."},
+  {num:"2958224",title:"SAP HANA 2.0 Revision and Maintenance Strategy",cat:"sps08",desc:"Tracks all HANA revision releases and support timelines."},
+  {num:"2222220",title:"FAQ: SAP HANA DBACOCKPIT",cat:"config",desc:"DBACOCKPIT configuration, features, and troubleshooting."},
+  {num:"1840954",title:"Alerts Related to HANA Memory Consumption",cat:"memory",desc:"Heap allocator resolution guidance for memory-related alerts."},
+  {num:"2147247",title:"STATISTICS_ALERTS_BASE Cleanup",cat:"config",desc:"Cleanup when alerts table grows excessively large (>30 GB)."},
+  {num:"2007212",title:"Tuning SAP Web Dispatcher and ICM",cat:"s4hana",desc:"Web Dispatcher/ICM tuning for Fiori high-load scenarios."},
+  {num:"2881803",title:"S/4HANA Fiori Best Practices — Collective Note",cat:"s4hana",desc:"Fiori app configuration, authorization, performance best practices."},
+  {num:"1943937",title:"HWCCT — Hardware Configuration Check Tool",cat:"config",desc:"Storage KPI validation tool for HANA TDI environments."},
+];
+
+const THRESHOLDS = [
+  {metric:"HANA Memory Utilization",layer:"db",warn:"≥ 80%",crit:"≥ 90%",ctx:"Column unloads begin ~90%; OOM risk above 95%"},
+  {metric:"CPU Utilization (App Server)",layer:"os",warn:"≥ 60% sustained",crit:"≥ 80% sustained",ctx:"Keep ≥40% idle headroom for peaks"},
+  {metric:"CPU Utilization (HANA DB)",layer:"os",warn:"≥ 70% sustained",crit:"≥ 85% sustained",ctx:"HANA parallelizes heavily; sustained high degrades all queries"},
+  {metric:"Dialog Response Time",layer:"abap",warn:"> 700 ms avg",crit:"> 1200 ms avg",ctx:"Healthy: 250–400 ms. SLA targets typically 700–1000 ms"},
+  {metric:"Dispatcher Wait Time",layer:"abap",warn:"> 50 ms avg",crit:"> 200 ms avg",ctx:"Normally <5 ms; high = insufficient dialog WPs"},
+  {metric:"DB Request Time",layer:"db",warn:"> 200 ms avg",crit:"> 500 ms avg",ctx:"On HANA, DB time should be very low"},
+  {metric:"Log Write Latency",layer:"db",warn:"> 1 ms",crit:"> 2 ms",ctx:"SAP TDI KPI for 4KB/16KB blocks; impacts commit throughput"},
+  {metric:"Data Read Latency",layer:"db",warn:"> 2 ms",crit:"> 5 ms",ctx:"Impacts column loads, restart time, savepoints"},
+  {metric:"Savepoint Critical Phase",layer:"db",warn:"> 50 ms",crit:"> 200 ms",ctx:"Should be microseconds to low milliseconds"},
+  {metric:"Buffer Hit Ratio (ST02)",layer:"abap",warn:"< 98%",crit:"< 95%",ctx:"All buffers should be ≥98%; swaps should be 0"},
+  {metric:"Delta Merge Duration",layer:"db",warn:"> 30 seconds",crit:"> 120s or failures",ctx:"Failed merges (error_code ≠ 0) = immediate attention"},
+  {metric:"Enqueue Time",layer:"abap",warn:"> 5 ms",crit:"> 20 ms",ctx:"Normally <5 ms; high = lock contention or enqueue server"},
+];
+
+const CADENCE = {
+  realtime: {label:"Real-Time / Continuous",items:[
+    "Work process status via <code>SM50</code>/<code>SM66</code>",
+    "HANA alerts via Cockpit / <code>STATISTICS_CURRENT_ALERTS</code>",
+    "Memory utilization vs allocation limit",
+    "CPU on app + DB servers (<code>ST06</code>)",
+    "Lock waits (<code>SM12</code> + <code>M_BLOCKED_TRANSACTIONS</code>)",
+    "System log errors (<code>SM21</code>)",
+    "ABAP dumps (<code>ST22</code>)",
+    "Failed updates (<code>SM13</code>)",
+  ]},
+  daily: {label:"Daily",items:[
+    "<code>ST03</code> workload statistics (avg response time, top programs)",
+    "Background job results (<code>SM37</code>)",
+    "Backup status (<code>DBACOCKPIT</code> / <code>M_BACKUP_CATALOG</code>)",
+    "System log review (<code>SM21</code>)",
+    "Short dump analysis (<code>ST22</code>)",
+    "Delta merge status (<code>M_DELTA_MERGE_STATISTICS</code>)",
+    "Update request errors (<code>SM13</code>)",
+  ]},
+  weekly: {label:"Weekly",items:[
+    "<code>ST02</code> buffer hit ratios and swap analysis",
+    "<code>ST06</code> historical CPU/memory/I/O trends",
+    "Expensive statement trace review",
+    "Table growth analysis (<code>DB02</code>, <code>M_CS_TABLES</code>)",
+    "RFC error log (<code>SM58</code>)",
+    "IDoc errors (<code>BD87</code>/<code>WE05</code>)",
+    "Disk volume usage trends",
+  ]},
+  monthly: {label:"Monthly",items:[
+    "HANA memory growth projection — capacity planning",
+    "<code>ST03</code> monthly trend comparison",
+    "Database size and archiving assessment",
+    "HANA MiniChecks (SAP Note <code>1969700</code>)",
+    "Parameter optimization review (<code>2600030</code>)",
+    "Performance baseline comparison",
+    "SQLM long-term SQL analysis (quarterly)",
+  ]},
+};
+
+// ================ LAYER DEFINITIONS ================
+const LAYERS = {
+  abap: {color: "var(--layer-abap)", label: "ABAP / Application", desc: "SAP GUI transactions, ABAP runtime, work processes, buffers, enqueue server, update system"},
+  db: {color: "var(--layer-db)", label: "HANA Database", desc: "In-memory engine, SQL plan cache, column/row store, delta merge, threads, memory management"},
+  os: {color: "var(--layer-os)", label: "OS / Infrastructure", desc: "CPU, physical memory, swap, disk I/O, network, filesystem, kernel parameters"},
+  network: {color: "var(--layer-network)", label: "Network / Communication", desc: "RFC, HTTP/ICM, Gateway, Web Dispatcher, qRFC queues, IDoc/ALE"},
+  cross: {color: "var(--layer-cross)", label: "Cross-Layer", desc: "Tools spanning multiple layers — typically ABAP-initiated with DB-level data collection"},
+};
+
+// ================ RENDER FUNCTIONS ================
+
+function renderOverview() {
+  // Stats
+  const types = {};
+  ALL_TOOLS.forEach(t => { types[t.type] = (types[t.type]||0) + 1; });
+  const statsHTML = `
+    <div class="stat-card"><div class="stat-value">${ALL_TOOLS.length}</div><div class="stat-label">Tools & Views</div></div>
+    <div class="stat-card"><div class="stat-value">${SCENARIOS.length}</div><div class="stat-label">Scenarios</div></div>
+    <div class="stat-card"><div class="stat-value">${SQL_QUERIES.length}</div><div class="stat-label">SQL Queries</div></div>
+    <div class="stat-card"><div class="stat-value">${SAP_NOTES.length}</div><div class="stat-label">SAP Notes</div></div>
+    <div class="stat-card"><div class="stat-value">${THRESHOLDS.length}</div><div class="stat-label">Thresholds</div></div>
+  `;
+  document.getElementById('overview-stats').innerHTML = statsHTML;
+
+  // Architecture layers
+  const layerOrder = ['abap','db','os','network','cross'];
+  let archHTML = '';
+  layerOrder.forEach(lk => {
+    const tools = ALL_TOOLS.filter(t => t.layer === lk);
+    const chips = tools.map(t =>
+      `<span class="arch-tool-chip" onclick="event.stopPropagation();showToolDetail('${t.name}')">${t.name}</span>`
+    ).join('');
+    archHTML += `
+      <div class="arch-layer" data-layer="${lk}">
+        <div class="arch-layer-label">${LAYERS[lk].label.split('/')[0].trim()}</div>
+        <div class="arch-layer-tools">${chips}</div>
+      </div>`;
+  });
+  document.getElementById('arch-layers').innerHTML = archHTML;
+
+  // Layer summary cards
+  let cardsHTML = '';
+  Object.entries(LAYERS).forEach(([k,v]) => {
+    const count = ALL_TOOLS.filter(t=>t.layer===k).length;
+    cardsHTML += `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="layer-badge ${k}">${v.label}</span>
+          <span style="font-family:'JetBrains Mono';font-size:20px;font-weight:700;color:${v.color}">${count}</span>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.5">${v.desc}</p>
+      </div>`;
+  });
+  document.getElementById('layer-summary-cards').innerHTML = cardsHTML;
+}
+
+function renderReferenceTable() {
+  const layerFilters = ['All','ABAP','Database','OS','Network','Cross-Layer'];
+  const typeFilters = ['Transaction','HANA View','HANA Trace','HANA Tool'];
+  let chipsHTML = layerFilters.map(f =>
+    `<span class="filter-chip ${f==='All'?'active':''}" data-filter-group="layer" data-filter="${f}" onclick="toggleFilter(this)">${f}</span>`
+  ).join('');
+  chipsHTML += '<span style="width:1px;height:20px;background:var(--border);margin:0 4px"></span>';
+  chipsHTML += typeFilters.map(f =>
+    `<span class="filter-chip" data-filter-group="type" data-filter="${f}" onclick="toggleFilter(this)">${f}</span>`
+  ).join('');
+  document.getElementById('filter-chips').innerHTML = chipsHTML;
+  filterTable();
+}
+
+function filterTable() {
+  const query = (document.getElementById('ref-search').value || '').toLowerCase();
+  const activeLayerChips = [...document.querySelectorAll('.filter-chip.active[data-filter-group="layer"]')].map(c=>c.dataset.filter);
+  const activeTypeChips = [...document.querySelectorAll('.filter-chip.active[data-filter-group="type"]')].map(c=>c.dataset.filter);
+
+  const layerMap = {abap:'ABAP',db:'Database',os:'OS',network:'Network',cross:'Cross-Layer'};
+
+  let filtered = ALL_TOOLS.filter(t => {
+    if (query && !JSON.stringify(t).toLowerCase().includes(query)) return false;
+    if (activeLayerChips.length && !activeLayerChips.includes('All')) {
+      if (!activeLayerChips.includes(layerMap[t.layer])) return false;
+    }
+    if (activeTypeChips.length && !activeTypeChips.includes(t.type)) return false;
+    return true;
+  });
+
+  let html = '';
+  filtered.forEach(t => {
+    html += `<tr onclick="showToolDetail('${t.name}')" style="cursor:pointer">
+      <td><span class="tool-name">${t.name}</span></td>
+      <td><span class="layer-badge ${t.layer}">${LAYERS[t.layer].label.split('/')[0].trim()}</span></td>
+      <td style="white-space:nowrap;font-size:12px">${t.type}</td>
+      <td style="max-width:240px">${t.purpose}</td>
+      <td style="max-width:220px;font-size:12px">${t.when}</td>
+      <td style="max-width:280px;font-size:12px">${t.enable}</td>
+    </tr>`;
+  });
+  document.getElementById('ref-tbody').innerHTML = html;
+  document.getElementById('result-count').textContent = `${filtered.length} of ${ALL_TOOLS.length} tools`;
+}
+
+function toggleFilter(chip) {
+  const group = chip.dataset.filterGroup;
+  if (chip.dataset.filter === 'All') {
+    document.querySelectorAll(`.filter-chip[data-filter-group="${group}"]`).forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  } else {
+    document.querySelector(`.filter-chip[data-filter="All"][data-filter-group="${group}"]`)?.classList.remove('active');
+    chip.classList.toggle('active');
+    const anyActive = [...document.querySelectorAll(`.filter-chip.active[data-filter-group="${group}"]`)].length;
+    if (!anyActive) document.querySelector(`.filter-chip[data-filter="All"][data-filter-group="${group}"]`)?.classList.add('active');
+  }
+  filterTable();
+}
+
+function renderScenarios() {
+  let html = '';
+  SCENARIOS.forEach((s,i) => {
+    const stepsHTML = s.steps.map((st,j) =>
+      `<div class="workflow-step">
+        <div class="workflow-step-num">${j+1}</div>
+        <div class="workflow-step-text"><code>${st.tool}</code> — ${st.text}</div>
+      </div>`
+    ).join('');
+    html += `
+      <div class="scenario-card" onclick="this.classList.toggle('expanded')">
+        <div class="scenario-icon">${s.icon}</div>
+        <h4>${s.title}</h4>
+        <p>${s.symptom}</p>
+        <span class="expand-hint">Click to ${`expand workflow →`}</span>
+        <div class="workflow-steps">${stepsHTML}</div>
+      </div>`;
+  });
+  document.getElementById('scenario-grid').innerHTML = html;
+}
+
+function renderSQL() {
+  let html = '';
+  SQL_QUERIES.forEach((q,i) => {
+    const tagsHTML = q.tags.map(t => `<span class="sql-tag ${t}">${t}</span>`).join('');
+    html += `
+      <div class="sql-card" id="sql-card-${i}" data-tags="${q.tags.join(',')}" data-title="${q.title.toLowerCase()}">
+        <div class="sql-card-header" onclick="document.getElementById('sql-card-${i}').classList.toggle('expanded')">
+          <h4>${q.title}</h4>
+          <div class="sql-tags">${tagsHTML}</div>
+        </div>
+        <div class="sql-card-body">
+          <div class="sql-description">${q.desc}</div>
+          <div class="sql-block">
+            <button class="copy-btn" onclick="event.stopPropagation();copySQL(this, ${i})">COPY</button>
+            <pre>${highlightSQL(q.sql)}</pre>
+          </div>
+        </div>
+      </div>`;
+  });
+  document.getElementById('sql-cards').innerHTML = html;
+}
+
+function highlightSQL(sql) {
+  const kws = ['SELECT','FROM','WHERE','ORDER BY','GROUP BY','LEFT JOIN','ON','AND','OR','AS','DESC','ASC','TOP','SET','ALTER','SYSTEM','CONFIGURATION','WITH','RECONFIGURE','CASE','WHEN','THEN','END','IN','NOT','ROUND','SUBSTR','SUM','COUNT','BETWEEN','IS','NULL'];
+  let out = sql.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Comments
+  out = out.replace(/(--.*)/g, '<span class="cm">$1</span>');
+  // Strings
+  out = out.replace(/('(?:[^']|\\')*')/g, '<span class="str">$1</span>');
+  // Numbers
+  out = out.replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>');
+  // Keywords
+  kws.forEach(kw => {
+    const re = new RegExp(`\\b(${kw})\\b`, 'gi');
+    out = out.replace(re, (m) => `<span class="kw">${m}</span>`);
+  });
+  return out;
+}
+
+function copySQL(btn, idx) {
+  navigator.clipboard.writeText(SQL_QUERIES[idx].raw).then(() => {
+    btn.textContent = 'COPIED';
+    btn.classList.add('copied');
+    showToast('SQL copied to clipboard');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function filterSQL() {
+  const q = document.getElementById('sql-search').value.toLowerCase();
+  document.querySelectorAll('.sql-card').forEach(card => {
+    const match = card.dataset.title.includes(q) || card.dataset.tags.includes(q);
+    card.style.display = match ? 'block' : 'none';
+  });
+}
+
+function renderNotes() {
+  const cats = [...new Set(SAP_NOTES.map(n=>n.cat))];
+  const catLabels = {config:'Config',memory:'Memory',sql:'SQL',tracing:'Tracing',s4hana:'S/4HANA',sps08:'SPS08',methodology:'Methodology'};
+  let chipsHTML = `<span class="filter-chip active" data-ncat="all" onclick="filterNotesChip(this)">All</span>`;
+  cats.forEach(c => {
+    chipsHTML += `<span class="filter-chip" data-ncat="${c}" onclick="filterNotesChip(this)">${catLabels[c]||c}</span>`;
+  });
+  document.getElementById('notes-filter-chips').innerHTML = chipsHTML;
+  filterNotes();
+}
+
+function filterNotes() {
+  const q = (document.getElementById('notes-search').value || '').toLowerCase();
+  const activeChips = [...document.querySelectorAll('#notes-filter-chips .filter-chip.active')].map(c=>c.dataset.ncat);
+  const showAll = activeChips.includes('all') || activeChips.length === 0;
+
+  let filtered = SAP_NOTES.filter(n => {
+    if (q && !(n.num.includes(q) || n.title.toLowerCase().includes(q) || n.desc.toLowerCase().includes(q))) return false;
+    if (!showAll && !activeChips.includes(n.cat)) return false;
+    return true;
+  });
+
+  let html = '';
+  filtered.forEach(n => {
+    html += `
+      <div class="note-card">
+        <div class="note-number">${n.num}</div>
+        <div class="note-info">
+          <h5>${n.title}</h5>
+          <p>${n.desc}</p>
+          <span class="note-category ${n.cat}">${n.cat}</span>
+        </div>
+      </div>`;
+  });
+  document.getElementById('notes-grid').innerHTML = html;
+}
+
+function filterNotesChip(chip) {
+  if (chip.dataset.ncat === 'all') {
+    document.querySelectorAll('#notes-filter-chips .filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  } else {
+    document.querySelector('#notes-filter-chips .filter-chip[data-ncat="all"]').classList.remove('active');
+    chip.classList.toggle('active');
+    const any = [...document.querySelectorAll('#notes-filter-chips .filter-chip.active')].length;
+    if (!any) document.querySelector('#notes-filter-chips .filter-chip[data-ncat="all"]').classList.add('active');
+  }
+  filterNotes();
+}
+
+function renderThresholds() {
+  let html = '';
+  THRESHOLDS.forEach(t => {
+    html += `<tr>
+      <td>${t.metric}</td>
+      <td><span class="layer-badge ${t.layer}">${LAYERS[t.layer].label.split('/')[0].trim()}</span></td>
+      <td class="threshold-warn">${t.warn}</td>
+      <td class="threshold-crit">${t.crit}</td>
+      <td>${t.ctx}</td>
+    </tr>`;
+  });
+  document.getElementById('threshold-tbody').innerHTML = html;
+}
+
+function renderCadence() {
+  let html = '';
+  Object.entries(CADENCE).forEach(([key, val]) => {
+    const items = val.items.map(i => `<div class="cadence-item">${i}</div>`).join('');
+    html += `
+      <div class="cadence-col" data-freq="${key}">
+        <div class="cadence-col-header">${val.label}</div>
+        <div class="cadence-items">${items}</div>
+      </div>`;
+  });
+  document.getElementById('cadence-timeline').innerHTML = html;
+}
+
+// ================ DETAIL PANEL ================
+
+function showToolDetail(name) {
+  const tool = ALL_TOOLS.find(t => t.name === name);
+  if (!tool) return;
+  const layer = LAYERS[tool.layer];
+  const notesHTML = tool.notes.length ?
+    tool.notes.map(n => {
+      const note = SAP_NOTES.find(sn => sn.num === n);
+      return `<li><strong>${n}</strong>${note ? ' — '+note.title : ''}</li>`;
+    }).join('') : '<li>No specific notes linked</li>';
+
+  document.getElementById('detail-content').innerHTML = `
+    <h3>${tool.name}</h3>
+    <div class="detail-layer" style="margin-top:4px">
+      <span class="layer-badge ${tool.layer}">${layer.label}</span>
+      <span style="font-size:12px;color:var(--text-muted);margin-left:8px">${tool.type}</span>
+    </div>
+    <div class="detail-section">
+      <h5>Purpose</h5>
+      <p>${tool.purpose}</p>
+    </div>
+    <div class="detail-section">
+      <h5>When to Use</h5>
+      <p>${tool.when}</p>
+    </div>
+    <div class="detail-section">
+      <h5>How to Enable / Access</h5>
+      <p>${tool.enable}</p>
+    </div>
+    <div class="detail-section">
+      <h5>Analysis Details</h5>
+      <p>${tool.detail}</p>
+    </div>
+    <div class="detail-section">
+      <h5>Related SAP Notes</h5>
+      <ul>${notesHTML}</ul>
+    </div>
+  `;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+// ================ NAVIGATION ================
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.topbar-nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  closeDetail();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+let sortCol = -1, sortDir = 1;
+function sortTable(col) {
+  if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+  const tbody = document.getElementById('ref-tbody');
+  const rows = [...tbody.querySelectorAll('tr')];
+  rows.sort((a,b) => {
+    const va = a.children[col].textContent.trim();
+    const vb = b.children[col].textContent.trim();
+    return va.localeCompare(vb) * sortDir;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// Close detail on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+// ================ INIT ================
+renderOverview();
+renderReferenceTable();
+renderScenarios();
+renderSQL();
+renderNotes();
+renderThresholds();
+renderCadence();
+</script>
+</body>
+</html>

@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP BTP Administration — Interactive Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e14;--bg2:#111821;--bg3:#1a2332;--bg4:#243044;
+  --amber:#f0a500;--amber-dim:#9e6c00;--amber-glow:rgba(240,165,0,.15);
+  --cyan:#00e5ff;--cyan-dim:#007a8a;--cyan-glow:rgba(0,229,255,.12);
+  --green:#00e676;--green-dim:#00994d;
+  --red:#ff5252;--red-dim:#c62828;
+  --purple:#bb86fc;
+  --text:#e8eaf0;--text2:#8a94a6;--text3:#5a6578;
+  --border:#1e2a3a;--border2:#2a3a50;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-body:'DM Sans',sans-serif;
+  --font-display:'Playfair Display',serif;
+  --radius:6px;
+  --transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth;font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.7;overflow-x:hidden}
+::selection{background:var(--amber);color:var(--bg)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* ===== GRID OVERLAY ===== */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 1px,rgba(0,229,255,.015) 1px,rgba(0,229,255,.015) 2px);
+  mix-blend-mode:screen;opacity:.4}
+
+/* ===== NAVIGATION ===== */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;backdrop-filter:blur(20px);
+  background:rgba(10,14,20,.85);border-bottom:1px solid var(--border);padding:0 2rem}
+nav .nav-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;height:52px;gap:1.5rem}
+nav .logo{font-family:var(--font-mono);font-weight:700;font-size:.85rem;color:var(--amber);
+  letter-spacing:2px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
+nav .logo span{color:var(--cyan)}
+nav .nav-links{display:flex;gap:.2rem;overflow-x:auto;scrollbar-width:none;flex:1}
+nav .nav-links::-webkit-scrollbar{display:none}
+nav .nav-links a{color:var(--text2);text-decoration:none;font-size:.7rem;font-family:var(--font-mono);
+  padding:.35rem .6rem;border-radius:var(--radius);white-space:nowrap;transition:var(--transition);
+  letter-spacing:.5px;text-transform:uppercase}
+nav .nav-links a:hover,nav .nav-links a.active{color:var(--amber);background:var(--amber-glow)}
+nav .progress-bar{position:absolute;bottom:0;left:0;height:2px;background:linear-gradient(90deg,var(--amber),var(--cyan));
+  transition:width .1s;width:0}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:6rem 2rem 4rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;right:-20%;width:800px;height:800px;
+  background:radial-gradient(circle,var(--amber-glow) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-30%;left:-10%;width:600px;height:600px;
+  background:radial-gradient(circle,var(--cyan-glow) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1000px;margin:0 auto;position:relative;z-index:1}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;font-family:var(--font-mono);
+  font-size:.65rem;color:var(--amber);background:var(--amber-glow);border:1px solid var(--amber-dim);
+  padding:.3rem .8rem;border-radius:20px;margin-bottom:1.5rem;letter-spacing:1.5px;text-transform:uppercase}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--amber);border-radius:50%;
+  animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;
+  line-height:1.1;margin-bottom:1rem;background:linear-gradient(135deg,var(--text) 0%,var(--text2) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--amber) 0%,var(--cyan) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero .subtitle{font-size:1.15rem;color:var(--text2);max-width:700px;margin-bottom:2rem}
+.hero .meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:2rem}
+.hero .meta-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;
+  display:flex;flex-direction:column;gap:.25rem}
+.hero .meta-card .label{font-family:var(--font-mono);font-size:.6rem;color:var(--text3);
+  letter-spacing:1.5px;text-transform:uppercase}
+.hero .meta-card .value{font-size:1.5rem;font-weight:700;color:var(--amber)}
+.hero .meta-card .desc{font-size:.75rem;color:var(--text2)}
+
+/* ===== SECTIONS ===== */
+section{padding:5rem 2rem;position:relative}
+.container{max-width:1200px;margin:0 auto}
+.section-header{margin-bottom:3rem}
+.section-num{font-family:var(--font-mono);font-size:.65rem;color:var(--cyan);letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.section-num::after{content:'';flex:1;max-width:60px;height:1px;background:var(--cyan-dim)}
+.section-title{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;line-height:1.2}
+.section-subtitle{color:var(--text2);font-size:1rem;margin-top:.5rem;max-width:700px}
+.divider{border:0;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:0 2rem}
+
+/* ===== CARDS ===== */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.5rem;transition:var(--transition);position:relative;overflow:hidden}
+.card:hover{border-color:var(--border2);transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--amber),var(--cyan));opacity:0;transition:var(--transition)}
+.card:hover::before{opacity:1}
+
+/* ===== TIMELINE ===== */
+.timeline{position:relative;padding-left:3rem}
+.timeline::before{content:'';position:absolute;left:12px;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,var(--amber),var(--cyan),var(--green))}
+.timeline-item{position:relative;margin-bottom:2rem;padding-left:1.5rem}
+.timeline-item::before{content:'';position:absolute;left:-2.55rem;top:.5rem;width:12px;height:12px;
+  border-radius:50%;background:var(--bg);border:2px solid var(--amber);z-index:1;transition:var(--transition)}
+.timeline-item:hover::before{background:var(--amber);box-shadow:0 0 12px var(--amber)}
+.timeline-item.active::before{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.timeline-year{font-family:var(--font-mono);font-size:.7rem;color:var(--amber);letter-spacing:1px;margin-bottom:.25rem}
+.timeline-title{font-weight:600;font-size:1rem;margin-bottom:.25rem}
+.timeline-desc{font-size:.85rem;color:var(--text2);line-height:1.6}
+
+/* ===== INTERACTIVE HIERARCHY ===== */
+.hierarchy{display:flex;flex-direction:column;gap:0;align-items:center;padding:2rem 0}
+.h-level{display:flex;flex-direction:column;align-items:center;width:100%}
+.h-node{background:var(--bg3);border:2px solid var(--border2);border-radius:var(--radius);
+  padding:1rem 1.5rem;cursor:pointer;transition:var(--transition);position:relative;
+  max-width:500px;width:100%;text-align:center}
+.h-node:hover{border-color:var(--amber);box-shadow:0 0 20px var(--amber-glow)}
+.h-node.expanded{border-color:var(--cyan)}
+.h-node .h-type{font-family:var(--font-mono);font-size:.6rem;color:var(--cyan);
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.25rem}
+.h-node .h-name{font-weight:600;font-size:1rem}
+.h-node .h-detail{font-size:.75rem;color:var(--text2);margin-top:.25rem;display:none}
+.h-node.expanded .h-detail{display:block}
+.h-connector{width:2px;height:24px;background:var(--border2);position:relative}
+.h-children{display:none;width:100%;padding:0 1rem}
+.h-children.visible{display:flex;flex-direction:column;align-items:center;gap:0}
+.h-branch{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;width:100%}
+.h-branch .h-node{max-width:280px;flex:1;min-width:200px}
+
+/* ===== TABS ===== */
+.tabs{display:flex;gap:.25rem;margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none;
+  border-bottom:1px solid var(--border)}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{font-family:var(--font-mono);font-size:.7rem;color:var(--text3);background:none;border:none;
+  padding:.6rem 1rem;cursor:pointer;transition:var(--transition);letter-spacing:.5px;
+  text-transform:uppercase;border-bottom:2px solid transparent;white-space:nowrap}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber)}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== COMPARISON TABLE ===== */
+.compare-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.compare-table th{font-family:var(--font-mono);font-size:.65rem;color:var(--cyan);
+  letter-spacing:1px;text-transform:uppercase;padding:.8rem 1rem;text-align:left;
+  border-bottom:2px solid var(--border2);background:var(--bg2);position:sticky;top:52px}
+.compare-table td{padding:.7rem 1rem;border-bottom:1px solid var(--border);vertical-align:top}
+.compare-table tr:hover td{background:var(--bg2)}
+.compare-table .env-badge{display:inline-flex;align-items:center;gap:.3rem;
+  padding:.15rem .5rem;border-radius:3px;font-family:var(--font-mono);font-size:.65rem;font-weight:600}
+.env-cf{background:rgba(0,230,118,.1);color:var(--green);border:1px solid var(--green-dim)}
+.env-kyma{background:rgba(187,134,252,.1);color:var(--purple);border:1px solid rgba(187,134,252,.3)}
+.env-abap{background:rgba(240,165,0,.1);color:var(--amber);border:1px solid var(--amber-dim)}
+
+/* ===== CLI REFERENCE ===== */
+.cli-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;margin-bottom:1rem}
+.cli-header{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;
+  background:var(--bg3);border-bottom:1px solid var(--border);cursor:pointer}
+.cli-header .cli-tool{font-family:var(--font-mono);font-size:.7rem;font-weight:600;color:var(--cyan)}
+.cli-header .cli-desc{font-size:.75rem;color:var(--text2)}
+.cli-header .cli-toggle{color:var(--text3);font-size:.8rem;transition:var(--transition)}
+.cli-block.open .cli-toggle{transform:rotate(180deg)}
+.cli-body{display:none;padding:1rem}
+.cli-block.open .cli-body{display:block}
+.cli-cmd{font-family:var(--font-mono);font-size:.75rem;background:var(--bg);border:1px solid var(--border);
+  border-radius:4px;padding:.5rem .8rem;margin-bottom:.5rem;display:flex;align-items:flex-start;gap:.5rem;
+  line-height:1.5;cursor:pointer;transition:var(--transition);position:relative}
+.cli-cmd:hover{border-color:var(--amber-dim);background:var(--amber-glow)}
+.cli-cmd .prompt{color:var(--green);flex-shrink:0;user-select:none}
+.cli-cmd .cmd-text{color:var(--text)}
+.cli-cmd .cmd-text .flag{color:var(--cyan)}
+.cli-cmd .cmd-text .arg{color:var(--amber)}
+.cli-cmd .copied{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);
+  font-size:.6rem;color:var(--green);opacity:0;transition:var(--transition)}
+.cli-cmd.just-copied .copied{opacity:1}
+.cli-comment{font-family:var(--font-mono);font-size:.7rem;color:var(--text3);
+  padding:.2rem 0;margin-bottom:.3rem}
+
+/* ===== FLOW DIAGRAM ===== */
+.flow-diagram{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1rem 0}
+.flow-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;justify-content:center}
+.flow-box{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:.8rem 1.2rem;text-align:center;min-width:140px;transition:var(--transition);cursor:default}
+.flow-box:hover{border-color:var(--amber);transform:scale(1.03)}
+.flow-box .flow-label{font-family:var(--font-mono);font-size:.55rem;color:var(--cyan);
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:.2rem}
+.flow-box .flow-name{font-weight:600;font-size:.85rem}
+.flow-box .flow-desc{font-size:.7rem;color:var(--text2);margin-top:.2rem}
+.flow-arrow{color:var(--amber);font-size:1.2rem;flex-shrink:0}
+.flow-arrow-down{color:var(--amber);font-size:1rem;transform:rotate(90deg)}
+
+/* ===== KNOWLEDGE CHECK ===== */
+.quiz{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-top:2rem}
+.quiz-question{font-weight:600;margin-bottom:1rem;font-size:.95rem}
+.quiz-options{display:flex;flex-direction:column;gap:.5rem}
+.quiz-opt{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:.6rem 1rem;cursor:pointer;font-size:.85rem;transition:var(--transition);
+  display:flex;align-items:center;gap:.5rem}
+.quiz-opt:hover{border-color:var(--border2)}
+.quiz-opt .opt-letter{font-family:var(--font-mono);font-size:.7rem;color:var(--text3);
+  width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border2);border-radius:3px;flex-shrink:0}
+.quiz-opt.correct{border-color:var(--green);background:rgba(0,230,118,.08)}
+.quiz-opt.correct .opt-letter{border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{border-color:var(--red);background:rgba(255,82,82,.08)}
+.quiz-opt.wrong .opt-letter{border-color:var(--red);color:var(--red)}
+.quiz-opt.disabled{pointer-events:none;opacity:.7}
+.quiz-feedback{margin-top:.8rem;font-size:.8rem;color:var(--text2);display:none;
+  padding:.8rem;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border)}
+.quiz-feedback.visible{display:block}
+.quiz-feedback.correct-fb{border-color:var(--green-dim);color:var(--green)}
+.quiz-feedback.wrong-fb{border-color:var(--red-dim);color:var(--red)}
+
+/* ===== TOOLTIP / GLOSSARY ===== */
+.term{border-bottom:1px dashed var(--amber-dim);cursor:help;position:relative;color:var(--amber)}
+.term:hover .tip{display:block}
+.tip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--bg3);border:1px solid var(--amber-dim);border-radius:var(--radius);
+  padding:.6rem .8rem;font-size:.75rem;color:var(--text);width:260px;z-index:100;
+  line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+
+/* ===== INFO CALLOUT ===== */
+.callout{border-left:3px solid var(--amber);background:var(--amber-glow);
+  padding:1rem 1.2rem;border-radius:0 var(--radius) var(--radius) 0;margin:1.5rem 0;font-size:.85rem}
+.callout.info{border-left-color:var(--cyan);background:var(--cyan-glow)}
+.callout .callout-title{font-family:var(--font-mono);font-size:.65rem;color:var(--amber);
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:.3rem}
+.callout.info .callout-title{color:var(--cyan)}
+
+/* ===== COMMERCIAL TOGGLE ===== */
+.model-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem}
+.model-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.5rem;transition:var(--transition);cursor:pointer;position:relative}
+.model-card:hover,.model-card.selected{border-color:var(--amber);box-shadow:0 4px 20px var(--amber-glow)}
+.model-card .model-name{font-weight:700;font-size:1.1rem;margin-bottom:.5rem}
+.model-card .model-type{font-family:var(--font-mono);font-size:.6rem;color:var(--cyan);
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:.5rem}
+.model-card .model-desc{font-size:.8rem;color:var(--text2);line-height:1.6}
+.model-card .model-best{margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);
+  font-size:.75rem;color:var(--green)}
+
+/* ===== ACCORDION ===== */
+.accordion{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:.5rem}
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.2rem;
+  cursor:pointer;background:var(--bg2);transition:var(--transition);gap:1rem}
+.acc-header:hover{background:var(--bg3)}
+.acc-header h4{font-size:.9rem;font-weight:600}
+.acc-header .acc-icon{color:var(--text3);transition:var(--transition);flex-shrink:0}
+.accordion.open .acc-icon{transform:rotate(45deg);color:var(--amber)}
+.acc-body{display:none;padding:1rem 1.2rem;border-top:1px solid var(--border);
+  font-size:.85rem;color:var(--text2);line-height:1.7}
+.accordion.open .acc-body{display:block;animation:fadeIn .3s}
+
+/* ===== KEY-VALUE PAIRS ===== */
+.kv{display:flex;gap:.5rem;margin-bottom:.4rem;font-size:.8rem}
+.kv .k{font-family:var(--font-mono);color:var(--cyan);min-width:120px;flex-shrink:0;font-size:.7rem}
+.kv .v{color:var(--text)}
+
+/* ===== SEARCH / FILTER ===== */
+.search-bar{display:flex;align-items:center;gap:.5rem;background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:.4rem .8rem;margin-bottom:1.5rem;max-width:400px}
+.search-bar input{background:none;border:none;color:var(--text);font-family:var(--font-body);
+  font-size:.85rem;outline:none;flex:1}
+.search-bar input::placeholder{color:var(--text3)}
+.search-bar .search-icon{color:var(--text3);font-size:.85rem}
+
+/* ===== PROGRESS TRACKER ===== */
+.chapter-progress{display:flex;align-items:center;gap:.3rem;margin-bottom:1rem}
+.cp-dot{width:8px;height:8px;border-radius:50%;background:var(--bg4);transition:var(--transition)}
+.cp-dot.read{background:var(--green)}
+.cp-dot.current{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  section{padding:3rem 1rem}
+  .hero{padding:5rem 1rem 3rem}
+  nav .nav-links a{font-size:.6rem;padding:.3rem .4rem}
+  .h-branch{flex-direction:column;align-items:center}
+  .flow-row{flex-direction:column}
+  .flow-arrow{transform:rotate(90deg)}
+  .model-cards{grid-template-columns:1fr}
+  .compare-table{font-size:.75rem}
+  .compare-table th,.compare-table td{padding:.5rem}
+}
+
+/* ===== ANIMATE ON SCROLL ===== */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION ===== -->
+<nav>
+  <div class="nav-inner">
+    <div class="logo">SAP<span>://</span>BTP<span>.admin</span></div>
+    <div class="nav-links">
+      <a href="#origin" class="active">Origin</a>
+      <a href="#evolution">Evolution</a>
+      <a href="#account-model">Account Model</a>
+      <a href="#environments">Environments</a>
+      <a href="#iam">IAM</a>
+      <a href="#tools">Tools</a>
+      <a href="#connectivity">Connectivity</a>
+      <a href="#observability">Observability</a>
+      <a href="#commercial">Commercial</a>
+      <a href="#architecture">Architecture</a>
+    </div>
+  </div>
+  <div class="progress-bar" id="progressBar"></div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-badge"><span></span>Interactive Learning Course</div>
+    <h1>Administrating <em>SAP BTP</em></h1>
+    <p class="subtitle">A comprehensive, interactive course covering the full SAP BTP administration landscape — from first principles to operational mastery. Built around SAP's official learning journey curriculum.</p>
+    <div class="meta-grid">
+      <div class="meta-card">
+        <span class="label">Chapters</span>
+        <span class="value">10</span>
+        <span class="desc">Origin to Architecture</span>
+      </div>
+      <div class="meta-card">
+        <span class="label">Based On</span>
+        <span class="value">9 Units</span>
+        <span class="desc">SAP Official Curriculum</span>
+      </div>
+      <div class="meta-card">
+        <span class="label">Customers</span>
+        <span class="value">33K+</span>
+        <span class="desc">Using SAP BTP today</span>
+      </div>
+      <div class="meta-card">
+        <span class="label">ROI</span>
+        <span class="value">516%</span>
+        <span class="desc">3-year return (IDC)</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<hr class="divider">
+
+<!-- ===== CH0: WHY BTP EXISTS ===== -->
+<section id="origin">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 00 — The Origin Story</div>
+      <h2 class="section-title">Why Does SAP BTP Exist?</h2>
+      <p class="section-subtitle">Before learning how to administer BTP, understand the forces that created it — the problems, the historical workarounds, and why nothing else could solve them.</p>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">The Core Problem</div>
+      Imagine you're an enterprise running SAP ERP for 15 years. Your system has 5 million lines of custom ABAP code, 200+ point-to-point interfaces, and modifications touching nearly every transaction. Now SAP says: "Move to S/4HANA Cloud — but you can't bring your custom code." Where does all that logic go? <strong>That's the problem BTP solves.</strong>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:2rem">
+      
+      <div class="accordion" onclick="this.classList.toggle('open')">
+        <div class="acc-header">
+          <h4>🏗️ What was done historically?</h4>
+          <span class="acc-icon">+</span>
+        </div>
+        <div class="acc-body">
+          <strong>Before BTP, SAP administration meant BASIS.</strong> A dedicated team of SAP Basis administrators managed on-premise SAP systems — installing patches, tuning database performance, managing user accounts in transaction SU01, configuring RFC connections, monitoring with SM21/ST22, and transporting changes through the landscape with STMS.<br><br>
+          Integration was handled by <strong>SAP PI/PO</strong> (Process Integration / Process Orchestration) — a heavyweight middleware requiring its own Java stack. Custom logic lived inside the ERP as ABAP modifications, user exits, BAdIs, and enhancement points. Every upgrade required regression testing of all custom code.<br><br>
+          This worked for decades, but created <strong>massive technical debt</strong>. Organizations couldn't upgrade easily, couldn't adopt cloud, and couldn't innovate without risking their core business processes.
+        </div>
+      </div>
+
+      <div class="accordion" onclick="this.classList.toggle('open')">
+        <div class="acc-header">
+          <h4>🔧 What problem does BTP solve?</h4>
+          <span class="acc-icon">+</span>
+        </div>
+        <div class="acc-body">
+          BTP solves <strong>five interconnected problems</strong>:<br><br>
+          <strong>1. Extension without modification</strong> — Build custom logic alongside SAP core ("side-by-side") instead of modifying it. This is SAP's "Clean Core" strategy.<br><br>
+          <strong>2. Integration across the landscape</strong> — Connect SAP-to-SAP, SAP-to-third-party, cloud-to-on-premise through a single governed platform instead of hundreds of point-to-point interfaces.<br><br>
+          <strong>3. Innovation access</strong> — AI, machine learning, IoT, process automation, low-code development — all available as managed services without building infrastructure.<br><br>
+          <strong>4. Multi-cloud flexibility</strong> — Run on AWS, Azure, or GCP depending on your existing cloud investments and data residency requirements.<br><br>
+          <strong>5. Unified governance</strong> — One account model, one identity layer, one commercial agreement across all these capabilities.
+        </div>
+      </div>
+
+      <div class="accordion" onclick="this.classList.toggle('open')">
+        <div class="acc-header">
+          <h4>🤔 What would I use instead?</h4>
+          <span class="acc-icon">+</span>
+        </div>
+        <div class="acc-body">
+          Without BTP, you'd need a <strong>patchwork of tools</strong>:<br><br>
+          <div class="kv"><span class="k">Integration</span><span class="v">MuleSoft or Boomi ($100K+/year)</span></div>
+          <div class="kv"><span class="k">Data</span><span class="v">Snowflake or BigQuery</span></div>
+          <div class="kv"><span class="k">Low-Code</span><span class="v">Power Platform or Mendix</span></div>
+          <div class="kv"><span class="k">AI/ML</span><span class="v">AWS SageMaker or Azure AI</span></div>
+          <div class="kv"><span class="k">Runtime</span><span class="v">Self-managed Kubernetes</span></div>
+          <div class="kv"><span class="k">Identity</span><span class="v">Okta or Azure AD custom config</span></div>
+          <div class="kv"><span class="k">Connectivity</span><span class="v">Custom VPN + API gateways</span></div>
+          <br>
+          Critically, <strong>none of these natively understand SAP's business data models</strong> — organizational hierarchies, currency handling, material masters, transaction semantics. Every integration requires custom mapping that BTP provides out of the box.
+        </div>
+      </div>
+
+      <div class="accordion" onclick="this.classList.toggle('open')">
+        <div class="acc-header">
+          <h4>🎯 When should I use BTP?</h4>
+          <span class="acc-icon">+</span>
+        </div>
+        <div class="acc-body">
+          <strong>Use BTP when:</strong><br>
+          • You run SAP and need to extend or integrate it with cloud services<br>
+          • You're migrating to S/4HANA Cloud and need a home for custom logic<br>
+          • You want managed services for AI, integration, or low-code that understand SAP data<br>
+          • You need a governed platform for multiple dev teams building on SAP<br><br>
+          <strong>Consider alternatives when:</strong><br>
+          • You have zero SAP footprint (hyperscaler-native tools may be simpler)<br>
+          • You need deep non-SAP integration only (MuleSoft has broader connector ecosystems for non-SAP)<br>
+          • You're building consumer-facing apps with no SAP backend dependency
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="quiz" id="quiz0">
+      <div class="quiz-question">🧠 Knowledge Check: Why is BTP essential for S/4HANA Cloud migrations?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">
+          <span class="opt-letter">A</span>S/4HANA Cloud has no built-in functionality
+        </div>
+        <div class="quiz-opt" data-correct="true" onclick="checkQuiz(this)">
+          <span class="opt-letter">B</span>S/4HANA Cloud restricts direct code modifications — custom logic must live outside the core
+        </div>
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">
+          <span class="opt-letter">C</span>SAP requires BTP licensing to purchase S/4HANA
+        </div>
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">
+          <span class="opt-letter">D</span>BTP replaces S/4HANA entirely
+        </div>
+      </div>
+      <div class="quiz-feedback">The "Clean Core" strategy means keeping S/4HANA Cloud as close to standard as possible. All customizations — extensions, integrations, automations — are built on BTP using governed APIs, ensuring smooth upgrades and innovation cycles.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH1: EVOLUTION TIMELINE ===== -->
+<section id="evolution">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 01 — The Evolution</div>
+      <h2 class="section-title">From HANA Cloud Platform to BTP</h2>
+      <p class="section-subtitle">A decade of strategic pivots — each rebrand reflecting a fundamental shift in SAP's cloud architecture and ambition.</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-year">Jun 2011</div>
+        <div class="timeline-title">SAP HANA Ships</div>
+        <div class="timeline-desc">The in-memory database launches at SAPPHIRE NOW. It's a database product, not a platform — but it plants the seed for everything that follows. The speed of HANA makes real-time analytics on transactional data possible for the first time.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">Oct 2012</div>
+        <div class="timeline-title">SAP NetWeaver Cloud (First PaaS)</div>
+        <div class="timeline-desc">SAP's first attempt at Platform-as-a-Service. Runs in SAP's own data centers on the proprietary <strong>Neo environment</strong>. Supports Java and HANA XS development. Quickly renamed to avoid confusion with on-premise NetWeaver.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">May 2013</div>
+        <div class="timeline-title">SAP HANA Cloud Platform (HCP)</div>
+        <div class="timeline-desc">The HANA brand is hot. SAP leans into it, positioning HCP as the way to build cloud apps on HANA. Still Neo-only, still SAP data centers only. Reaches 4,000+ customers by 2015, but the proprietary lock-in becomes a problem.</div>
+      </div>
+      <div class="timeline-item active">
+        <div class="timeline-year">Feb 2017</div>
+        <div class="timeline-title">SAP Cloud Platform (SCP)</div>
+        <div class="timeline-desc">Renamed at Mobile World Congress. The key insight: this platform is more than HANA. In 2017–2018, SCP introduces the <strong>Cloud Foundry environment</strong> — embracing open-source, deploying on AWS, Azure, and GCP for the first time. This is the pivotal architectural shift from proprietary to open, multi-cloud.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2018</div>
+        <div class="timeline-title">ABAP Environment ("Steampunk")</div>
+        <div class="timeline-desc">SAP creates a cloud-native ABAP runtime using the RESTful Application Programming Model (RAP). For the first time, ABAP developers can build cloud applications using modern patterns while leveraging their existing skills. A bridge between old and new worlds.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2019</div>
+        <div class="timeline-title">Kyma Runtime Added</div>
+        <div class="timeline-desc">Kubernetes-based runtime joins the platform, based on the open-source Kyma project. Now SCP offers three environments: Neo (legacy), Cloud Foundry (mainstream), and Kyma (cloud-native). Event-driven architectures become first-class citizens.</div>
+      </div>
+      <div class="timeline-item active">
+        <div class="timeline-year">Jan 2021</div>
+        <div class="timeline-title">SAP Business Technology Platform</div>
+        <div class="timeline-desc">The final (current) brand. SCP merges with HANA Cloud, Analytics Cloud, Data Intelligence, and Integration Suite under the BTP umbrella. Coincides with <strong>RISE with SAP</strong> — SAP's business transformation offering that bundles S/4HANA Cloud + BTP. The message: BTP is the technology foundation for all SAP innovation.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">2022–2023</div>
+        <div class="timeline-title">SAP Build & Generative AI</div>
+        <div class="timeline-desc">SAP Build portfolio (Apps, Process Automation, Work Zone) brings low-code/no-code. SAP AI Core and Generative AI Hub launch. Joule copilot integrated across SAP applications. BTP becomes the AI and automation hub.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">Dec 2028</div>
+        <div class="timeline-title">Neo Environment Sunset</div>
+        <div class="timeline-desc">The original proprietary runtime is scheduled for end-of-life. All customers must migrate to the multi-cloud foundation (Cloud Foundry or Kyma). An era ends — and the multi-cloud future is fully realized.</div>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top:2rem">
+      <div class="callout-title">Key Insight</div>
+      Every rebrand reflects a real architectural shift: HCP → SCP added multi-cloud. SCP → BTP unified the full technology stack. Understanding this evolution helps you understand why BTP is structured the way it is today — and why Neo, Cloud Foundry, and Kyma coexist.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH2: ACCOUNT MODEL ===== -->
+<section id="account-model">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 02 — The Account Model</div>
+      <h2 class="section-title">Building the Hierarchy</h2>
+      <p class="section-subtitle">If you were designing BTP from scratch, you'd need a way to organize thousands of subaccounts across departments, regions, and projects. This is that system.</p>
+    </div>
+
+    <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.5rem">Click each node below to expand it and see details. This is the actual hierarchy you manage as a BTP administrator.</p>
+
+    <div class="hierarchy" id="accountHierarchy">
+      <!-- Global Account -->
+      <div class="h-level">
+        <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--amber)">
+          <div class="h-type">Global Account</div>
+          <div class="h-name">ACME Corp (Enterprise)</div>
+          <div class="h-detail" style="text-align:left;margin-top:.8rem">
+            <div class="kv"><span class="k">What</span><span class="v">Top-level container. Represents your contract with SAP.</span></div>
+            <div class="kv"><span class="k">Scope</span><span class="v">Region-independent, environment-independent</span></div>
+            <div class="kv"><span class="k">Types</span><span class="v">Enterprise, Trial (90-day), Partner</span></div>
+            <div class="kv"><span class="k">Manages</span><span class="v">Entitlements, members, directories, subaccounts</span></div>
+            <div class="kv"><span class="k">Analogy</span><span class="v">Like an AWS Organization — the billing & governance root</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-connector"></div>
+
+      <!-- Directories -->
+      <div class="h-level">
+        <div class="h-branch">
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--cyan)">
+            <div class="h-type">Directory</div>
+            <div class="h-name">🇪🇺 Europe Region</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">What</span><span class="v">Optional grouping. Organize by dept, region, project.</span></div>
+              <div class="kv"><span class="k">Feature</span><span class="v">Can nest directories inside directories</span></div>
+              <div class="kv"><span class="k">Managed Mode</span><span class="v">Can reserve quota & auto-assign entitlements</span></div>
+              <div class="kv"><span class="k">Requires</span><span class="v">Feature Set B (current standard)</span></div>
+              <div class="kv"><span class="k">Analogy</span><span class="v">Like an AWS OU (Organizational Unit)</span></div>
+            </div>
+          </div>
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--cyan)">
+            <div class="h-type">Directory</div>
+            <div class="h-name">🇺🇸 Americas Region</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">Labels</span><span class="v">Custom key-value tags for filtering</span></div>
+              <div class="kv"><span class="k">Members</span><span class="v">Directory-level admins & viewers</span></div>
+              <div class="kv"><span class="k">Delegation</span><span class="v">Regional teams can manage their own subaccounts</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-connector"></div>
+
+      <!-- Subaccounts -->
+      <div class="h-level">
+        <div class="h-branch">
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--green)">
+            <div class="h-type">Subaccount</div>
+            <div class="h-name">EU-DEV (eu10 / AWS)</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">What</span><span class="v">The operational unit. Where work happens.</span></div>
+              <div class="kv"><span class="k">Region</span><span class="v">Locked at creation. Cannot change later.</span></div>
+              <div class="kv"><span class="k">Contains</span><span class="v">Services, subscriptions, environments, destinations</span></div>
+              <div class="kv"><span class="k">Security</span><span class="v">Independent trust config, users, role collections</span></div>
+              <div class="kv"><span class="k">Analogy</span><span class="v">Like an AWS Account within an Organization</span></div>
+            </div>
+          </div>
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--green)">
+            <div class="h-type">Subaccount</div>
+            <div class="h-name">EU-PROD (eu10 / AWS)</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">Environments</span><span class="v">Can enable CF + Kyma + ABAP simultaneously</span></div>
+              <div class="kv"><span class="k">CF Mapping</span><span class="v">1 subaccount = 1 CF Org (1:1)</span></div>
+              <div class="kv"><span class="k">Isolation</span><span class="v">Data, users, network — all isolated per subaccount</span></div>
+            </div>
+          </div>
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--green)">
+            <div class="h-type">Subaccount</div>
+            <div class="h-name">US-DEV (us10 / AWS)</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">Note</span><span class="v">Different region = different hyperscaler datacenter</span></div>
+              <div class="kv"><span class="k">Data residency</span><span class="v">Data stays in the region where subaccount lives</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-connector"></div>
+
+      <!-- Environments -->
+      <div class="h-level">
+        <div class="h-branch">
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--purple)">
+            <div class="h-type" style="color:var(--green)">CF Environment</div>
+            <div class="h-name">Org → Spaces (dev, staging)</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">Structure</span><span class="v">Org (auto-created) → Spaces (you create)</span></div>
+              <div class="kv"><span class="k">Managed by</span><span class="v">cf CLI</span></div>
+              <div class="kv"><span class="k">Deploy with</span><span class="v">cf push / cf deploy (MTA)</span></div>
+            </div>
+          </div>
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--purple)">
+            <div class="h-type" style="color:var(--purple)">Kyma Environment</div>
+            <div class="h-name">Cluster → Namespaces</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">Structure</span><span class="v">Managed K8s cluster → Namespaces</span></div>
+              <div class="kv"><span class="k">Managed by</span><span class="v">kubectl / Kyma CLI</span></div>
+              <div class="kv"><span class="k">Features</span><span class="v">Service mesh (Istio), serverless functions</span></div>
+            </div>
+          </div>
+          <div class="h-node" onclick="toggleNode(this)" style="border-color:var(--purple)">
+            <div class="h-type" style="color:var(--amber)">ABAP Environment</div>
+            <div class="h-name">ABAP System Instance</div>
+            <div class="h-detail" style="text-align:left;margin-top:.8rem">
+              <div class="kv"><span class="k">Structure</span><span class="v">Service instance (sized in ACU/HCU)</span></div>
+              <div class="kv"><span class="k">Managed by</span><span class="v">ADT (Eclipse), Landscape Portal</span></div>
+              <div class="kv"><span class="k">Model</span><span class="v">ABAP RESTful Application Programming (RAP)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entitlements -->
+    <h3 style="font-size:1.2rem;margin:2rem 0 1rem;font-weight:700">Entitlements & Quotas</h3>
+    <p style="font-size:.9rem;color:var(--text2);margin-bottom:1rem">Think of entitlements as a <strong>budget allocation system</strong>. Your contract with SAP gives your global account access to services. You then distribute those rights down the hierarchy.</p>
+    
+    <div class="flow-diagram">
+      <div class="flow-row">
+        <div class="flow-box" style="border-color:var(--amber)">
+          <div class="flow-label">Contract</div>
+          <div class="flow-name">SAP Agreement</div>
+          <div class="flow-desc">CPEA / Subscription / PayG</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">
+          <div class="flow-label">Global Account</div>
+          <div class="flow-name">Service Catalog</div>
+          <div class="flow-desc">All entitled services</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">
+          <div class="flow-label">Directory (optional)</div>
+          <div class="flow-name">Reserved Quota</div>
+          <div class="flow-desc">Managed mode only</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="border-color:var(--green)">
+          <div class="flow-label">Subaccount</div>
+          <div class="flow-name">Assigned Quota</div>
+          <div class="flow-desc">Enable → Provision → Use</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:1rem">
+      <div class="callout-title">Entitlement vs Quota</div>
+      <strong>Entitlement</strong> = your right to use a service plan. <strong>Quota</strong> = how much of it you can use. Example: You're entitled to the "Cloud Foundry Runtime" service, with a quota of 4 units of memory. You assign 2 units to DEV subaccount and 2 to PROD.
+    </div>
+
+    <div class="quiz" id="quiz2">
+      <div class="quiz-question">🧠 Knowledge Check: What is the relationship between a subaccount and a Cloud Foundry Organization?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">
+          <span class="opt-letter">A</span>One subaccount can contain multiple CF Organizations
+        </div>
+        <div class="quiz-opt" data-correct="true" onclick="checkQuiz(this)">
+          <span class="opt-letter">B</span>Enabling CF in a subaccount creates exactly one CF Org (1:1 mapping)
+        </div>
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">
+          <span class="opt-letter">C</span>CF Organizations exist independently of subaccounts
+        </div>
+        <div class="quiz-opt" data-correct="false" onclick="checkQuiz(this)">
+          <span class="opt-letter">D</span>Subaccounts and CF Orgs are the same thing
+        </div>
+      </div>
+      <div class="quiz-feedback">When you enable Cloud Foundry in a subaccount, it automatically creates one CF Organization. Within that Org, you create Spaces (dev, test, prod) for further logical separation. The Org inherits the subaccount's region and cannot span multiple subaccounts.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH3: ENVIRONMENTS ===== -->
+<section id="environments">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 03 — Runtime Environments</div>
+      <h2 class="section-title">Cloud Foundry vs Kyma vs ABAP</h2>
+      <p class="section-subtitle">Three runtimes, three philosophies. Each exists because different teams have different needs. Here's when to use each.</p>
+    </div>
+
+    <div class="tabs" id="envTabs">
+      <button class="tab-btn active" onclick="switchTab('envTabs','envContent',0)">Comparison</button>
+      <button class="tab-btn" onclick="switchTab('envTabs','envContent',1)">Cloud Foundry</button>
+      <button class="tab-btn" onclick="switchTab('envTabs','envContent',2)">Kyma</button>
+      <button class="tab-btn" onclick="switchTab('envTabs','envContent',3)">ABAP</button>
+      <button class="tab-btn" onclick="switchTab('envTabs','envContent',4)">Decision Guide</button>
+    </div>
+
+    <div id="envContent">
+      <!-- Comparison Tab -->
+      <div class="tab-content active">
+        <div style="overflow-x:auto">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th style="width:20%">Aspect</th>
+              <th style="width:27%"><span class="env-badge env-cf">Cloud Foundry</span></th>
+              <th style="width:27%"><span class="env-badge env-kyma">Kyma</span></th>
+              <th style="width:27%"><span class="env-badge env-abap">ABAP Env</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Foundation</strong></td><td>Cloud Foundry (open source)</td><td>Kubernetes + Kyma project</td><td>SAP ABAP stack (cloud-native)</td></tr>
+            <tr><td><strong>Languages</strong></td><td>Java, Node.js, Python, Go, PHP, Ruby</td><td>Any container + serverless functions</td><td>ABAP (RAP model only)</td></tr>
+            <tr><td><strong>Deploy Unit</strong></td><td>Application (via buildpack)</td><td>Container / Docker image</td><td>ABAP packages & objects</td></tr>
+            <tr><td><strong>Structure</strong></td><td>Org → Spaces</td><td>Cluster → Namespaces</td><td>System instance</td></tr>
+            <tr><td><strong>CLI Tool</strong></td><td>cf CLI</td><td>kubectl / Kyma CLI</td><td>ADT (Eclipse) + Landscape Portal</td></tr>
+            <tr><td><strong>Scaling</strong></td><td>Horizontal (app instances)</td><td>Pod auto-scaling + scale-to-zero</td><td>Vertical (ACU/HCU sizing)</td></tr>
+            <tr><td><strong>Service Mesh</strong></td><td>Not built-in</td><td>Istio (built-in)</td><td>N/A</td></tr>
+            <tr><td><strong>Best For</strong></td><td>Managed PaaS, broad language support, simplicity</td><td>Microservices, event-driven, K8s expertise</td><td>ABAP teams, RAP-based extensions</td></tr>
+            <tr><td><strong>Learning Curve</strong></td><td>Low–Medium</td><td>Medium–High</td><td>Low (for ABAP devs)</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <!-- Cloud Foundry Tab -->
+      <div class="tab-content">
+        <div class="card" style="margin-bottom:1rem">
+          <h3 style="margin-bottom:.8rem">☁️ Cloud Foundry — The Managed PaaS</h3>
+          <p style="font-size:.9rem;color:var(--text2);line-height:1.7">Cloud Foundry is the most widely used BTP runtime. Think of it as a <strong>managed application hosting platform</strong> — you push your code, CF packages it into a container using a buildpack, deploys it, manages networking, and handles scaling. You never touch a Dockerfile or Kubernetes manifest.</p>
+          <div style="margin-top:1rem">
+            <p style="font-size:.85rem;margin-bottom:.5rem"><strong>Why it exists:</strong> Most SAP extension developers want to write business logic, not manage infrastructure. CF lets you <code>cf push myapp</code> and it just works — similar to Heroku, but integrated with SAP services.</p>
+            <p style="font-size:.85rem;margin-bottom:.5rem"><strong>Organizational model:</strong> When you enable CF in a subaccount, it creates an <strong>Org</strong>. Within the Org, you create <strong>Spaces</strong> (dev, test, prod). Each Space has its own apps, service instances, and member permissions.</p>
+            <p style="font-size:.85rem"><strong>How apps deploy:</strong> The primary method is <strong>Multi-Target Applications (MTAs)</strong> — a descriptor file (<code>mta.yaml</code>) defines your app modules, service dependencies, and deployment sequence. Deploy with <code>cf deploy</code>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kyma Tab -->
+      <div class="tab-content">
+        <div class="card" style="margin-bottom:1rem">
+          <h3 style="margin-bottom:.8rem">⚓ Kyma — The Kubernetes Runtime</h3>
+          <p style="font-size:.9rem;color:var(--text2);line-height:1.7">Kyma is a <strong>managed Kubernetes cluster</strong> provisioned by SAP Gardener, enriched with additional modules: Istio service mesh, serverless functions (scale-to-zero), and event-driven architecture for reacting to SAP business events.</p>
+          <div style="margin-top:1rem">
+            <p style="font-size:.85rem;margin-bottom:.5rem"><strong>Why it exists:</strong> Cloud Foundry abstracts too much for teams that need full container control, custom networking, sidecar proxies, or event-driven microservices. Kyma gives you Kubernetes power with SAP integration built in.</p>
+            <p style="font-size:.85rem;margin-bottom:.5rem"><strong>When to choose Kyma over CF:</strong> When you already have K8s expertise, need containers with custom base images, want service mesh capabilities, or are building event-driven extensions that react to SAP S/4HANA business events in real-time.</p>
+            <p style="font-size:.85rem"><strong>Key difference from raw K8s:</strong> Kyma clusters come pre-configured with SAP service bindings, event subscriptions, and identity integration. You don't need to build the SAP connectivity layer yourself.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABAP Tab -->
+      <div class="tab-content">
+        <div class="card" style="margin-bottom:1rem">
+          <h3 style="margin-bottom:.8rem">🔷 ABAP Environment — Steampunk</h3>
+          <p style="font-size:.9rem;color:var(--text2);line-height:1.7">A cloud-native ABAP runtime using the <strong>ABAP RESTful Application Programming Model (RAP)</strong>. "Steampunk" is its internal codename — modern cloud engineering principles applied to the 40-year-old ABAP language.</p>
+          <div style="margin-top:1rem">
+            <p style="font-size:.85rem;margin-bottom:.5rem"><strong>Why it exists:</strong> There are millions of ABAP developers worldwide. Rather than forcing them to learn Java or Node.js, SAP created a cloud ABAP environment with modern patterns: CDS views, behavior definitions, service bindings, and only released APIs.</p>
+            <p style="font-size:.85rem;margin-bottom:.5rem"><strong>Key restriction:</strong> You can only use <strong>released APIs and objects</strong>. No direct database table access, no classic dynpros, no unreleased function modules. This constraint is what makes it "cloud-ready."</p>
+            <p style="font-size:.85rem"><strong>Sizing:</strong> Measured in ABAP Compute Units (ACU) for processing power and HANA Compute Units (HCU) for database. Systems can be hibernated to save costs during non-business hours.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decision Guide -->
+      <div class="tab-content">
+        <div class="card" style="margin-bottom:1rem">
+          <h3 style="margin-bottom:.8rem">🧭 Decision Guide: Which Environment?</h3>
+          <div style="font-size:.9rem;color:var(--text2);line-height:1.8">
+            <p style="margin-bottom:1rem">Ask these questions to choose:</p>
+            <p><strong style="color:var(--green)">→ Cloud Foundry</strong> if: your team writes Java/Node.js/Python, you want managed PaaS simplicity, you're building SAP Fiori apps with CAP (Cloud Application Programming model), or you just want the fastest path to deployment.</p>
+            <p style="margin-top:.5rem"><strong style="color:var(--purple)">→ Kyma</strong> if: your team has Kubernetes expertise, you need container-level control, you're building event-driven microservices, or you need service mesh / advanced networking.</p>
+            <p style="margin-top:.5rem"><strong style="color:var(--amber)">→ ABAP Environment</strong> if: your team are ABAP experts, you're building extensions for ABAP-based SAP products (S/4HANA, ECC), or you want to use the RAP programming model.</p>
+            <p style="margin-top:1rem"><strong style="color:var(--text)">→ Multiple environments</strong>: You can enable all three in the same subaccount. A common pattern is CF for web apps + ABAP for backend extensions, or CF for BTP services + Kyma for event processing.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH4: IAM ===== -->
+<section id="iam">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 04 — Identity & Access Management</div>
+      <h2 class="section-title">Who Can Do What, and How They Prove It</h2>
+      <p class="section-subtitle">The identity layer is the most conceptually dense part of BTP administration. Here's the full picture.</p>
+    </div>
+
+    <div class="tabs" id="iamTabs">
+      <button class="tab-btn active" onclick="switchTab('iamTabs','iamContent',0)">User Types</button>
+      <button class="tab-btn" onclick="switchTab('iamTabs','iamContent',1)">Authorization Model</button>
+      <button class="tab-btn" onclick="switchTab('iamTabs','iamContent',2)">Identity Services</button>
+      <button class="tab-btn" onclick="switchTab('iamTabs','iamContent',3)">Auth Flow</button>
+    </div>
+
+    <div id="iamContent">
+      <!-- User Types -->
+      <div class="tab-content active">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+          <div class="card">
+            <h4 style="color:var(--amber);margin-bottom:.5rem">👤 Platform Users</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">Administrators, developers, and operators who manage the BTP platform itself. They work in the BTP Cockpit, use CLI tools, deploy applications, and manage services. They interact with the <strong>platform layer</strong>.</p>
+            <div style="margin-top:.8rem">
+              <div class="kv"><span class="k">Authenticate via</span><span class="v">SAP ID Service (default) or custom IdP</span></div>
+              <div class="kv"><span class="k">Manage at</span><span class="v">Global account, directory, subaccount levels</span></div>
+              <div class="kv"><span class="k">Permissions</span><span class="v">Role collections assigned in Cockpit</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--cyan);margin-bottom:.5rem">👥 Business Users</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">End users who consume applications deployed on BTP — SAP Build Work Zone, Fiori apps, custom apps. They never see the Cockpit. They interact with the <strong>application layer</strong>.</p>
+            <div style="margin-top:.8rem">
+              <div class="kv"><span class="k">Authenticate via</span><span class="v">SAP Cloud Identity Services (IAS)</span></div>
+              <div class="kv"><span class="k">Authorized by</span><span class="v">XSUAA role collections or IAS policies</span></div>
+              <div class="kv"><span class="k">Provisioned by</span><span class="v">IPS (Identity Provisioning Service)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Authorization Model -->
+      <div class="tab-content">
+        <p style="font-size:.9rem;color:var(--text2);margin-bottom:1.5rem">BTP uses a layered authorization model. Think of it as building blocks, from smallest to largest:</p>
+        <div class="flow-diagram">
+          <div class="flow-row">
+            <div class="flow-box" style="min-width:120px">
+              <div class="flow-label">Smallest</div>
+              <div class="flow-name">Scopes</div>
+              <div class="flow-desc">Fine-grained permissions<br>(e.g., "Read", "Write", "Admin")</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box" style="min-width:120px">
+              <div class="flow-label">Defined in code</div>
+              <div class="flow-name">Role Templates</div>
+              <div class="flow-desc">Groups of scopes<br>declared in xs-security.json</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box" style="min-width:120px">
+              <div class="flow-label">Instantiated</div>
+              <div class="flow-name">Roles</div>
+              <div class="flow-desc">Templates + optional<br>attribute restrictions</div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box" style="border-color:var(--amber);min-width:120px">
+              <div class="flow-label">Assigned to users</div>
+              <div class="flow-name">Role Collections</div>
+              <div class="flow-desc">Bundles of roles<br>assigned in Cockpit</div>
+            </div>
+          </div>
+        </div>
+        <div class="callout info" style="margin-top:1rem">
+          <div class="callout-title">Why this layered model?</div>
+          Developers define scopes and role templates in their application code (xs-security.json). Administrators then create role collections in the Cockpit and assign them to users — without needing to understand the application's internal authorization logic. This separation of concerns is key.
+        </div>
+      </div>
+
+      <!-- Identity Services -->
+      <div class="tab-content">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
+          <div class="card">
+            <h4 style="color:var(--amber);margin-bottom:.5rem">🔐 IAS — Identity Authentication</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">Cloud-based authentication service. Handles SSO, MFA, risk-based auth, social login. Supports SAML 2.0 and OpenID Connect. Can act as a <strong>proxy to your corporate IdP</strong> (Azure AD, Okta, ADFS).</p>
+            <p style="font-size:.85rem;color:var(--text2);margin-top:.5rem"><strong>Key insight:</strong> SAP recommends IAS as an intermediary even when you have a corporate IdP. This gives you centralized configuration, attribute enrichment, and consistent security policies across all SAP apps.</p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--cyan);margin-bottom:.5rem">🔄 IPS — Identity Provisioning</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">Automates user lifecycle: create, update, disable, delete users across systems. Uses SCIM 2.0 protocol. Connects source systems (HR, Azure AD) to target systems (IAS, BTP subaccounts, S/4HANA Cloud). 70+ pre-built connectors.</p>
+            <p style="font-size:.85rem;color:var(--text2);margin-top:.5rem"><strong>Global User ID:</strong> A unique identifier that follows users across all SAP systems, enabling consistent identity across the entire landscape.</p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--green);margin-bottom:.5rem">🎫 XSUAA — Authorization Server</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">SAP's extension of Cloud Foundry UAA. An OAuth 2.0 authorization server that issues JWT tokens. Does not store users — relies on trusted identity providers. Manages scopes, roles, and role collections for application-level authorization.</p>
+            <p style="font-size:.85rem;color:var(--text2);margin-top:.5rem"><strong>Key distinction:</strong> IAS handles <em>authentication</em> (who are you?). XSUAA handles <em>authorization</em> (what can you do?).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Auth Flow -->
+      <div class="tab-content">
+        <p style="font-size:.9rem;color:var(--text2);margin-bottom:1rem">Here's how a business user accesses a BTP application with the recommended architecture:</p>
+        <div class="flow-diagram">
+          <div class="flow-row">
+            <div class="flow-box"><div class="flow-label">Step 1</div><div class="flow-name">User</div><div class="flow-desc">Opens BTP app URL</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box"><div class="flow-label">Step 2</div><div class="flow-name">App Router</div><div class="flow-desc">Intercepts, redirects to auth</div></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-box" style="border-color:var(--amber)"><div class="flow-label">Step 3</div><div class="flow-name">XSUAA</div><div class="flow-desc">OAuth 2.0 authorize endpoint</div></div>
+          </div>
+          <div style="color:var(--amber);font-size:1rem;transform:rotate(90deg);margin:.5rem 0">→</div>
+          <div class="flow-row">
+            <div class="flow-box" style="border-color:var(--green)"><div class="flow-label">Step 6</div><div class="flow-name">App Backend</div><div class="flow-desc">Validates JWT, checks scopes</div></div>
+            <div class="flow-arrow">←</div>
+            <div class="flow-box"><div class="flow-label">Step 5</div><div class="flow-name">XSUAA</div><div class="flow-desc">Issues JWT token with scopes</div></div>
+            <div class="flow-arrow">←</div>
+            <div class="flow-box" style="border-color:var(--cyan)"><div class="flow-label">Step 4</div><div class="flow-name">IAS → Corp IdP</div><div class="flow-desc">Authenticates user (SSO/MFA)</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH5: TOOLS ===== -->
+<section id="tools">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 05 — The Admin Toolchain</div>
+      <h2 class="section-title">Cockpit, CLIs, and Terraform</h2>
+      <p class="section-subtitle">Four tools for four levels of automation — from clicking in a browser to infrastructure-as-code.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:2rem">
+      <div class="card">
+        <h4 style="color:var(--amber);margin-bottom:.3rem">🖥️ BTP Cockpit</h4>
+        <p style="font-size:.75rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:.5rem">GUI — Point & Click</p>
+        <p style="font-size:.85rem;color:var(--text2)">Web UI for visual administration. Best for exploration, initial setup, and tasks where you need to see the full picture. URL pattern: <code style="color:var(--cyan);font-size:.75rem">https://&lt;region&gt;.cockpit.btp.cloud.sap</code></p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--cyan);margin-bottom:.3rem">⌨️ btp CLI</h4>
+        <p style="font-size:.75rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:.5rem">CLI — Account-Level</p>
+        <p style="font-size:.85rem;color:var(--text2)">Command-line for global account, directory, subaccount, entitlement, and security management. Scriptable. Pattern: <code style="color:var(--cyan);font-size:.75rem">btp [action] [group]/[object]</code></p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--green);margin-bottom:.3rem">🔧 cf CLI</h4>
+        <p style="font-size:.75rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:.5rem">CLI — CF Environment</p>
+        <p style="font-size:.85rem;color:var(--text2)">Manages Cloud Foundry runtime: apps, services, routes, logs. Once btp CLI creates the CF org, cf CLI takes over for everything inside it.</p>
+      </div>
+      <div class="card">
+        <h4 style="color:var(--purple);margin-bottom:.3rem">🏗️ Terraform</h4>
+        <p style="font-size:.75rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:.5rem">IaC — Declarative</p>
+        <p style="font-size:.85rem;color:var(--text2)">Infrastructure as Code using the SAP BTP Terraform Provider. Declare desired state in .tf files, Terraform reconciles. Best for repeatable multi-environment (DEV/QA/PROD) provisioning.</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:1.1rem;margin-bottom:1rem;font-weight:700">Essential Commands Reference</h3>
+
+    <div class="cli-block open" onclick="this.classList.toggle('open')">
+      <div class="cli-header">
+        <span class="cli-tool">btp CLI</span>
+        <span class="cli-desc">Account & entitlement management</span>
+        <span class="cli-toggle">▼</span>
+      </div>
+      <div class="cli-body">
+        <div class="cli-comment"># Login & target</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">btp <span class="flag">login</span> <span class="arg">--url https://cli.btp.cloud.sap</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">btp <span class="flag">target</span> <span class="arg">--subaccount &lt;subaccount-id&gt;</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-comment"># Subaccount management</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">btp <span class="flag">list</span> accounts/subaccount</span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">btp <span class="flag">create</span> accounts/subaccount <span class="arg">--display-name "EU-DEV" --region eu10 --subdomain eu-dev</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-comment"># Entitlements</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">btp <span class="flag">assign</span> accounts/entitlement <span class="arg">--to-subaccount &lt;id&gt; --for-service &lt;svc&gt; --plan &lt;plan&gt; --amount 1</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-comment"># Security</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">btp <span class="flag">list</span> security/role-collection</span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">btp <span class="flag">assign</span> security/role-collection <span class="arg">"Subaccount Administrator" --to-user user@company.com</span></span><span class="copied">✓ copied</span></div>
+      </div>
+    </div>
+
+    <div class="cli-block" onclick="this.classList.toggle('open')">
+      <div class="cli-header">
+        <span class="cli-tool">cf CLI</span>
+        <span class="cli-desc">Cloud Foundry app & service management</span>
+        <span class="cli-toggle">▼</span>
+      </div>
+      <div class="cli-body">
+        <div class="cli-comment"># Login to CF (endpoint from subaccount overview)</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">cf <span class="flag">login</span> <span class="arg">-a https://api.cf.eu10.hana.ondemand.com</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-comment"># App management</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">cf <span class="flag">push</span> <span class="arg">myapp</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">cf <span class="flag">apps</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">cf <span class="flag">logs</span> <span class="arg">myapp --recent</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-comment"># Services</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">cf <span class="flag">marketplace</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">cf <span class="flag">create-service</span> <span class="arg">xsuaa application myapp-uaa -c xs-security.json</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-comment"># MTA deployment (most common)</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">cf <span class="flag">deploy</span> <span class="arg">myapp_1.0.0.mtar</span></span><span class="copied">✓ copied</span></div>
+      </div>
+    </div>
+
+    <div class="cli-block" onclick="this.classList.toggle('open')">
+      <div class="cli-header">
+        <span class="cli-tool">kubectl (Kyma)</span>
+        <span class="cli-desc">Kubernetes cluster management</span>
+        <span class="cli-toggle">▼</span>
+      </div>
+      <div class="cli-body">
+        <div class="cli-comment"># Get kubeconfig from BTP Cockpit → Kyma → Download</div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">kubectl <span class="flag">get</span> <span class="arg">namespaces</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">kubectl <span class="flag">get</span> <span class="arg">pods -n my-namespace</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">kubectl <span class="flag">apply</span> <span class="arg">-f deployment.yaml -n my-namespace</span></span><span class="copied">✓ copied</span></div>
+        <div class="cli-cmd" onclick="copyCmd(event,this)"><span class="prompt">$</span><span class="cmd-text">kubectl <span class="flag">logs</span> <span class="arg">-f pod/myapp-abc123 -n my-namespace</span></span><span class="copied">✓ copied</span></div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:1.5rem">
+      <div class="callout-title">The CLI Handoff Pattern</div>
+      <strong>btp CLI</strong> manages the account layer (subaccounts, entitlements, trust). Once an environment is created, you switch tools: <strong>cf CLI</strong> for Cloud Foundry, <strong>kubectl</strong> for Kyma, <strong>ADT</strong> for ABAP. Think of btp CLI as the "landlord" tool and cf/kubectl as the "tenant" tools.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH6: CONNECTIVITY ===== -->
+<section id="connectivity">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 06 — Connectivity</div>
+      <h2 class="section-title">Bridging Cloud and On-Premise</h2>
+      <p class="section-subtitle">Most SAP customers have critical systems behind their firewall. BTP needs to reach them — securely.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem">
+      <div class="card">
+        <h4 style="color:var(--amber);margin-bottom:.5rem">🔌 SAP Cloud Connector</h4>
+        <p style="font-size:.7rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:.8rem">CLOUD ←→ ON-PREMISE</p>
+        <p style="font-size:.85rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem">A lightweight agent installed in your on-premise network. Creates a <strong>reverse invoke proxy</strong> — the connection is always initiated outbound from your network to BTP via TLS. No inbound firewall ports needed.</p>
+        <div class="kv"><span class="k">Architecture</span><span class="v">Master/Shadow for high availability</span></div>
+        <div class="kv"><span class="k">Protocols</span><span class="v">HTTP/S, RFC, TCP</span></div>
+        <div class="kv"><span class="k">Security</span><span class="v">Whitelist specific paths & services</span></div>
+        <div class="kv"><span class="k">Mapping</span><span class="v">Virtual host:port → real internal address</span></div>
+        <div class="kv"><span class="k">Admin</span><span class="v">Web UI on port 8443</span></div>
+        <div class="kv"><span class="k">Use When</span><span class="v">Connecting to on-prem SAP (ECC, BW, PI)</span></div>
+      </div>
+
+      <div class="card">
+        <h4 style="color:var(--cyan);margin-bottom:.5rem">🔗 SAP Private Link</h4>
+        <p style="font-size:.7rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:.8rem">CLOUD ←→ CLOUD (PRIVATE)</p>
+        <p style="font-size:.85rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem">Uses native hyperscaler private networking (Azure Private Link, AWS PrivateLink) to establish connections between BTP and your cloud resources. Traffic <strong>never leaves the hyperscaler backbone</strong>.</p>
+        <div class="kv"><span class="k">Architecture</span><span class="v">Native hyperscaler private endpoints</span></div>
+        <div class="kv"><span class="k">Supports</span><span class="v">Azure, AWS</span></div>
+        <div class="kv"><span class="k">Use When</span><span class="v">BTP → your VPC/VNet resources</span></div>
+        <div class="kv"><span class="k">Advantage</span><span class="v">No public internet, lower latency</span></div>
+      </div>
+
+      <div class="card">
+        <h4 style="color:var(--green);margin-bottom:.5rem">📍 Destination Service</h4>
+        <p style="font-size:.7rem;color:var(--text3);font-family:var(--font-mono);margin-bottom:.8rem">CONNECTION CONFIGURATION</p>
+        <p style="font-size:.85rem;color:var(--text2);line-height:1.7;margin-bottom:.8rem">A centralized registry for connection configurations. A <strong>Destination</strong> stores the URL, authentication method, and proxy type for a target system. Applications look up destinations at runtime — no hardcoded endpoints.</p>
+        <div class="kv"><span class="k">Levels</span><span class="v">Subaccount, service instance, environment</span></div>
+        <div class="kv"><span class="k">Auth Types</span><span class="v">Basic, OAuth, SAML, Client Cert, Principal Propagation</span></div>
+        <div class="kv"><span class="k">Proxy Type</span><span class="v">Internet, OnPremise (via Cloud Connector)</span></div>
+        <div class="kv"><span class="k">Analogy</span><span class="v">Like a DNS + credential vault for backends</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH7: OBSERVABILITY ===== -->
+<section id="observability">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 07 — Observability & DevOps</div>
+      <h2 class="section-title">Monitoring, Alerting, and Lifecycle</h2>
+      <p class="section-subtitle">An administrator's core job after setup: know what's happening, react when things break, transport changes safely.</p>
+    </div>
+
+    <div class="tabs" id="obsTabs">
+      <button class="tab-btn active" onclick="switchTab('obsTabs','obsContent',0)">Observability Strategy</button>
+      <button class="tab-btn" onclick="switchTab('obsTabs','obsContent',1)">DevOps & Transport</button>
+    </div>
+
+    <div id="obsContent">
+      <div class="tab-content active">
+        <p style="font-size:.9rem;color:var(--text2);margin-bottom:1.5rem">BTP observability operates at two levels — <strong>central</strong> (across the whole landscape) and <strong>local</strong> (within a subaccount).</p>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem">
+          <div class="card">
+            <h4 style="color:var(--amber);margin-bottom:.5rem">🏢 SAP Cloud ALM (Central)</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">The central operations hub for your entire SAP landscape. Provides health monitoring, business process monitoring, integration monitoring, user monitoring, and intelligent event processing. Think of it as your "single pane of glass" for all SAP systems.</p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--cyan);margin-bottom:.5rem">🔔 Alert Notification (Local)</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">Event-based alerting within BTP. Three concepts: <strong>Actions</strong> (where to notify — email, Slack, webhook), <strong>Conditions</strong> (what to filter), <strong>Subscriptions</strong> (bind actions to conditions). Can trigger SAP Automation Pilot for auto-remediation.</p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--green);margin-bottom:.5rem">📋 Audit Log Service</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">Security-relevant event logging: who accessed what, who changed what, and when. Essential for GDPR, SOX compliance. Standard plan retains 90 days. Access via Audit Log Viewer UI or Retrieval API.</p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--purple);margin-bottom:.5rem">📊 SAP Cloud Logging</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.6">OpenSearch-based logging service for BTP applications and services. Centralized log aggregation, search, analysis, and visualization. The "ELK stack" equivalent within BTP.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem">
+          <div class="card">
+            <h4 style="color:var(--amber);margin-bottom:.5rem">📦 Cloud Transport Management (cTMS)</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.7">Transports content across BTP landscapes (DEV → QA → PROD). Supports MTA archives, Integration Suite content, and other BTP artifacts. Configure transport routes, nodes, and approval workflows — similar in concept to the classic STMS but for the cloud world.</p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--cyan);margin-bottom:.5rem">🔄 CI/CD Service</h4>
+            <p style="font-size:.85rem;color:var(--text2);line-height:1.7">SAP's managed CI/CD pipeline service. Define build, test, and deploy stages. Integrates with Git repositories (GitHub, GitLab, Bitbucket). Pre-built pipeline templates for CAP, Fiori, and MTA projects. Can also use external CI/CD (Jenkins, Azure DevOps, GitHub Actions).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH8: COMMERCIAL MODELS ===== -->
+<section id="commercial">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 08 — Commercial Models</div>
+      <h2 class="section-title">How BTP is Licensed and Billed</h2>
+      <p class="section-subtitle">Understanding the commercial model is as important as understanding the technical architecture. Click each model to explore.</p>
+    </div>
+
+    <div class="model-cards">
+      <div class="model-card selected" onclick="selectModel(this)">
+        <div class="model-type">Consumption-Based</div>
+        <div class="model-name">CPEA / SAP BTPEA</div>
+        <div class="model-desc">Pre-commit annual cloud credits (~$1/credit). Credits draw down as services are consumed. Access the full service catalog with maximum flexibility to pivot between services.</div>
+        <div class="model-best">✓ Best for: Enterprises exploring multiple services, need flexibility</div>
+      </div>
+      <div class="model-card" onclick="selectModel(this)">
+        <div class="model-type">Consumption-Based</div>
+        <div class="model-name">Pay-As-You-Go</div>
+        <div class="model-desc">Zero commitment. Billed monthly at list prices. Includes Free Tier access (90+ services, no time limit). Can seamlessly convert to CPEA when patterns stabilize.</div>
+        <div class="model-best">✓ Best for: POCs, startups, unpredictable usage, learning</div>
+      </div>
+      <div class="model-card" onclick="selectModel(this)">
+        <div class="model-type">Fixed-Fee</div>
+        <div class="model-name">Subscription</div>
+        <div class="model-desc">Traditional licensing for specific services over a defined term. Pay whether used or not. No free tier access. Predictable costs but no flexibility.</div>
+        <div class="model-best">✓ Best for: Predictable, high-volume usage of known services</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:1.5rem">
+      <div class="callout-title">Free Tier vs Trial — Critical Difference</div>
+      <strong>Trial:</strong> Non-commercial, 90-day limit, no SLA, restricted services. Work is deleted when it expires.<br>
+      <strong>Free Tier:</strong> Lives within an enterprise account (PayG or CPEA). No time limit, 90+ services, and you can upgrade to paid plans while keeping your work. Always start with Free Tier if possible.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== CH9: ARCHITECTURE ===== -->
+<section id="architecture">
+  <div class="container reveal">
+    <div class="section-header">
+      <div class="section-num">Chapter 09 — Multi-Cloud Architecture</div>
+      <h2 class="section-title">How BTP Runs on Hyperscalers</h2>
+      <p class="section-subtitle">BTP is not a hyperscaler — it runs on top of them. Understanding this architecture is key to making region and provider decisions.</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem">
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:.3rem">🟠</div>
+        <h4 style="font-size:.9rem">AWS</h4>
+        <p style="font-size:.75rem;color:var(--text2)">Largest footprint. 80+ services, 11 regions. Most mature.</p>
+        <p style="font-size:.65rem;color:var(--text3);font-family:var(--font-mono);margin-top:.3rem">eu10, us10, ap10, ...</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:.3rem">🔵</div>
+        <h4 style="font-size:.9rem">Microsoft Azure</h4>
+        <p style="font-size:.75rem;color:var(--text2)">Strong for Microsoft-integrated landscapes. Private Link support.</p>
+        <p style="font-size:.65rem;color:var(--text3);font-family:var(--font-mono);margin-top:.3rem">eu20, us20, ap20, ...</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:.3rem">🟢</div>
+        <h4 style="font-size:.9rem">Google Cloud</h4>
+        <p style="font-size:.75rem;color:var(--text2)">Growing service availability. BigQuery integration.</p>
+        <p style="font-size:.65rem;color:var(--text3);font-family:var(--font-mono);margin-top:.3rem">eu30, us30, ...</p>
+      </div>
+      <div class="card" style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:.3rem">🔴</div>
+        <h4 style="font-size:.9rem">Alibaba Cloud</h4>
+        <p style="font-size:.75rem;color:var(--text2)">Primarily China/APAC. Data sovereignty compliance.</p>
+        <p style="font-size:.65rem;color:var(--text3);font-family:var(--font-mono);margin-top:.3rem">cn40, ...</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-title">Region Naming Convention</div>
+      Region codes follow a pattern: <strong>eu10</strong> = Europe, AWS (#10 series). <strong>eu20</strong> = Europe, Azure (#20 series). <strong>eu30</strong> = Europe, GCP (#30 series). The first part is geography, the number indicates the hyperscaler. You choose a region when creating a subaccount — and it's immutable.
+    </div>
+
+    <h3 style="font-size:1.1rem;margin:2rem 0 1rem;font-weight:700">Architecture Layers</h3>
+    <div class="flow-diagram">
+      <div class="flow-row">
+        <div class="flow-box" style="width:100%;max-width:800px;border-color:var(--green)">
+          <div class="flow-label">Application Layer</div>
+          <div class="flow-name">Your Apps + SAP Business Services</div>
+          <div class="flow-desc">SAP Integration Suite, SAP Build, AI Core, Datasphere, Analytics Cloud, Custom CAP/Fiori Apps</div>
+        </div>
+      </div>
+      <div style="color:var(--text3)">▼</div>
+      <div class="flow-row">
+        <div class="flow-box" style="width:100%;max-width:800px;border-color:var(--cyan)">
+          <div class="flow-label">Platform Layer (PaaS)</div>
+          <div class="flow-name">BTP Runtime + Platform Services</div>
+          <div class="flow-desc">Cloud Foundry | Kyma | ABAP Environment + HANA Cloud, XSUAA, Destination, Connectivity, Identity Services</div>
+        </div>
+      </div>
+      <div style="color:var(--text3)">▼</div>
+      <div class="flow-row">
+        <div class="flow-box" style="width:100%;max-width:800px;border-color:var(--amber)">
+          <div class="flow-label">Infrastructure Layer (IaaS)</div>
+          <div class="flow-name">Hyperscaler Compute, Storage, Network</div>
+          <div class="flow-desc">AWS EC2/EKS/S3 | Azure VMs/AKS/Blob | GCP GCE/GKE/GCS — Kubernetes orchestration across all</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ===== FOOTER ===== -->
+<footer style="padding:3rem 2rem;text-align:center">
+  <div style="max-width:600px;margin:0 auto">
+    <p style="font-family:var(--font-mono);font-size:.7rem;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:.5rem">Course Complete</p>
+    <p style="font-size:1.3rem;font-weight:700;margin-bottom:.5rem">You've covered the full BTP Administration landscape.</p>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:1.5rem">From why BTP exists, through the account model, environments, identity, tools, connectivity, observability, commercial models, to multi-cloud architecture. Next: hands-on practice with a BTP Trial or Free Tier account.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="https://learning.sap.com/learning-journeys/administrating-sap-business-technology-platform-1" target="_blank" rel="noopener" style="color:var(--amber);font-family:var(--font-mono);font-size:.75rem;text-decoration:none;padding:.5rem 1rem;border:1px solid var(--amber-dim);border-radius:var(--radius);transition:var(--transition)">SAP Learning Journey →</a>
+      <a href="https://account.hanatrial.ondemand.com/" target="_blank" rel="noopener" style="color:var(--cyan);font-family:var(--font-mono);font-size:.75rem;text-decoration:none;padding:.5rem 1rem;border:1px solid var(--cyan-dim);border-radius:var(--radius);transition:var(--transition)">BTP Trial Account →</a>
+    </div>
+  </div>
+  <p style="font-size:.65rem;color:var(--text3);margin-top:3rem;font-family:var(--font-mono)">Interactive Course • Built for accelerated learning • Based on SAP official curriculum</p>
+</footer>
+
+<script>
+// ===== SCROLL PROGRESS =====
+const progressBar=document.getElementById('progressBar');
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+  progressBar.style.width=pct+'%';
+});
+
+// ===== ACTIVE NAV =====
+const sections=document.querySelectorAll('section[id]');
+const navLinks=document.querySelectorAll('nav .nav-links a');
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navLinks.forEach(l=>l.classList.remove('active'));
+      const link=document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if(link)link.classList.add('active');
+    }
+  });
+},{threshold:0.2,rootMargin:'-60px 0px -40% 0px'});
+sections.forEach(s=>observer.observe(s));
+
+// ===== REVEAL ON SCROLL =====
+const revealObserver=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObserver.unobserve(e.target)}});
+},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>revealObserver.observe(el));
+
+// ===== TABS =====
+function switchTab(tabGroupId,contentGroupId,idx){
+  const tabs=document.querySelectorAll(`#${tabGroupId} .tab-btn`);
+  const contents=document.querySelectorAll(`#${contentGroupId} .tab-content`);
+  tabs.forEach((t,i)=>{t.classList.toggle('active',i===idx)});
+  contents.forEach((c,i)=>{c.classList.toggle('active',i===idx)});
+}
+
+// ===== HIERARCHY TOGGLE =====
+function toggleNode(el){el.classList.toggle('expanded')}
+
+// ===== QUIZ =====
+function checkQuiz(opt){
+  const quiz=opt.closest('.quiz');
+  const allOpts=quiz.querySelectorAll('.quiz-opt');
+  const fb=quiz.querySelector('.quiz-feedback');
+  const isCorrect=opt.dataset.correct==='true';
+  allOpts.forEach(o=>{
+    o.classList.add('disabled');
+    if(o.dataset.correct==='true')o.classList.add('correct');
+  });
+  if(!isCorrect)opt.classList.add('wrong');
+  fb.classList.add('visible',isCorrect?'correct-fb':'wrong-fb');
+}
+
+// ===== COPY COMMAND =====
+function copyCmd(e,el){
+  e.stopPropagation();
+  const text=el.querySelector('.cmd-text').textContent.trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    el.classList.add('just-copied');
+    setTimeout(()=>el.classList.remove('just-copied'),1500);
+  });
+}
+
+// ===== MODEL SELECT =====
+function selectModel(el){
+  document.querySelectorAll('.model-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+</body>
+</html>

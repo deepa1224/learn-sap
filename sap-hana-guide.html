@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAP HANA 2.0 — Installation & Administration Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0e1a;--bg2:#101625;--bg3:#161c30;--bg4:#1c2440;
+--surface:#1a2138;--surface2:#222b48;--surface3:#2a3555;
+--text:#e8ecf4;--text2:#a0aac0;--text3:#6b7a96;
+--accent:#00bcd4;--accent2:#0097a7;--accent-glow:rgba(0,188,212,0.15);
+--sap-blue:#0070d2;--sap-gold:#f5a623;--sap-green:#45b764;--sap-red:#e34850;
+--sap-purple:#8b5cf6;--sap-orange:#f97316;
+--border:#1e2a45;--border2:#2a3a5c;
+--radius:12px;--radius-sm:8px;--radius-lg:16px;
+--shadow:0 4px 24px rgba(0,0,0,0.4);
+--font-display:'Playfair Display',serif;
+--font-body:'DM Sans',sans-serif;
+--font-mono:'JetBrains Mono',monospace;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.7;overflow-x:hidden}
+::selection{background:var(--accent);color:var(--bg)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* ── HERO ── */
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 30% 20%,rgba(0,112,210,0.12) 0%,transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(0,188,212,0.08) 0%,transparent 50%),var(--bg)}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,188,212,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,188,212,0.03) 1px,transparent 1px);background-size:60px 60px;animation:gridPulse 8s ease infinite}
+@keyframes gridPulse{0%,100%{opacity:.5}50%{opacity:1}}
+.hero-content{position:relative;text-align:center;padding:2rem;max-width:900px}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.2rem;background:var(--surface);border:1px solid var(--border2);border-radius:99px;font-size:.8rem;color:var(--accent);font-family:var(--font-mono);margin-bottom:2rem;animation:fadeUp .8s ease}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--sap-green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1;margin-bottom:1.5rem;animation:fadeUp .8s ease .1s both}
+.hero h1 span{background:linear-gradient(135deg,var(--accent),var(--sap-blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:1.2rem;color:var(--text2);max-width:600px;margin:0 auto 2.5rem;animation:fadeUp .8s ease .2s both}
+.hero-stats{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;animation:fadeUp .8s ease .3s both}
+.hero-stat{text-align:center}
+.hero-stat .num{font-family:var(--font-mono);font-size:2rem;font-weight:700;color:var(--accent)}
+.hero-stat .label{font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.scroll-hint{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(10px)}}
+.scroll-hint svg{width:24px;height:24px;stroke:var(--text3)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── NAVIGATION ── */
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,14,26,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.8rem 0;transition:box-shadow .3s}
+.nav.scrolled{box-shadow:0 4px 30px rgba(0,0,0,.5)}
+.nav-inner{max-width:1400px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:var(--font-mono);font-size:.9rem;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:.5rem}
+.nav-logo .cube{width:24px;height:24px;background:linear-gradient(135deg,var(--accent),var(--sap-blue));border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff}
+.nav-progress{flex:1;max-width:300px;margin:0 2rem;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.nav-progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--sap-blue));width:0%;transition:width .3s;border-radius:2px}
+.nav-chapters-btn{font-family:var(--font-body);font-size:.85rem;color:var(--text2);background:var(--surface);border:1px solid var(--border);padding:.5rem 1rem;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:.5rem}
+.nav-chapters-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── SIDEBAR ── */
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.sidebar-overlay.open{opacity:1;pointer-events:auto}
+.sidebar{position:fixed;top:0;right:-420px;width:400px;max-width:90vw;height:100vh;background:var(--bg2);border-left:1px solid var(--border);z-index:201;transition:right .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:2rem}
+.sidebar.open{right:0}
+.sidebar h3{font-family:var(--font-display);font-size:1.4rem;margin-bottom:1.5rem;color:var(--text)}
+.sidebar-close{position:absolute;top:1.5rem;right:1.5rem;background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.5rem;line-height:1}
+.toc-item{display:flex;align-items:center;gap:.75rem;padding:.7rem .8rem;margin-bottom:.3rem;border-radius:var(--radius-sm);color:var(--text2);text-decoration:none;font-size:.9rem;transition:all .2s;cursor:pointer;border:1px solid transparent}
+.toc-item:hover{background:var(--surface);border-color:var(--border);color:var(--text)}
+.toc-item.active{background:var(--accent-glow);border-color:rgba(0,188,212,.3);color:var(--accent)}
+.toc-num{font-family:var(--font-mono);font-size:.75rem;color:var(--text3);min-width:28px}
+.toc-check{margin-left:auto;color:var(--sap-green);opacity:0;font-size:.9rem}
+.toc-item.completed .toc-check{opacity:1}
+
+/* ── MAIN CONTENT ── */
+.main{max-width:960px;margin:0 auto;padding:2rem 2rem 6rem}
+.chapter{margin-bottom:5rem;opacity:0;transform:translateY(30px);transition:opacity .6s,transform .6s}
+.chapter.visible{opacity:1;transform:translateY(0)}
+.chapter-header{margin-bottom:2.5rem}
+.chapter-num{font-family:var(--font-mono);font-size:.8rem;color:var(--accent);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.chapter-num::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
+.chapter h2{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.5rem);font-weight:800;line-height:1.2;margin-bottom:1rem}
+.chapter-intro{font-size:1.1rem;color:var(--text2);border-left:3px solid var(--accent);padding-left:1.2rem;margin-bottom:2rem}
+
+/* ── TOPIC CARDS ── */
+.topic-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:1.5rem;overflow:hidden;transition:border-color .3s}
+.topic-card:hover{border-color:var(--border2)}
+.topic-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;cursor:pointer;user-select:none}
+.topic-header h3{font-size:1.05rem;font-weight:600;display:flex;align-items:center;gap:.7rem}
+.topic-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.topic-toggle{width:28px;height:28px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;transition:transform .3s,background .3s;color:var(--text3);font-size:.8rem}
+.topic-card.open .topic-toggle{transform:rotate(180deg);background:var(--accent);color:#fff}
+.topic-body{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1)}
+.topic-body-inner{padding:0 1.5rem 1.5rem}
+
+/* ── CONTENT ELEMENTS ── */
+p{margin-bottom:1rem;color:var(--text2)}
+.key-concept{background:linear-gradient(135deg,rgba(0,188,212,.08),rgba(0,112,210,.08));border:1px solid rgba(0,188,212,.2);border-radius:var(--radius);padding:1.2rem 1.5rem;margin:1.2rem 0}
+.key-concept h4{color:var(--accent);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.key-concept h4::before{content:'💡'}
+.key-concept p{color:var(--text);margin:0;font-size:.95rem}
+.warning-box{background:rgba(233,72,80,.06);border:1px solid rgba(233,72,80,.25);border-radius:var(--radius);padding:1.2rem 1.5rem;margin:1.2rem 0}
+.warning-box h4{color:var(--sap-red);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.warning-box h4::before{content:'⚠️ ';font-style:normal}
+.warning-box p{color:var(--text2);margin:0;font-size:.95rem}
+.pro-tip{background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.25);border-radius:var(--radius);padding:1.2rem 1.5rem;margin:1.2rem 0}
+.pro-tip h4{color:var(--sap-purple);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.pro-tip h4::before{content:'🚀 ';font-style:normal}
+.pro-tip p{color:var(--text2);margin:0;font-size:.95rem}
+.dig-deeper{background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.25);border-radius:var(--radius);padding:1.2rem 1.5rem;margin:1.2rem 0}
+.dig-deeper h4{color:var(--sap-orange);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+.dig-deeper h4::before{content:'🔬 '}
+.dig-deeper p,.dig-deeper ul{color:var(--text2);margin:0;font-size:.95rem}
+.dig-deeper ul{padding-left:1.2rem;margin-top:.5rem}
+.dig-deeper li{margin-bottom:.3rem}
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.3rem;margin:1rem 0;overflow-x:auto;font-family:var(--font-mono);font-size:.85rem;line-height:1.8;color:var(--accent)}
+.code-block .comment{color:var(--text3)}
+.code-block .keyword{color:var(--sap-purple)}
+.code-block .string{color:var(--sap-green)}
+.code-block .cmd{color:var(--sap-gold)}
+.step-list{counter-reset:steps;list-style:none;padding:0;margin:1.2rem 0}
+.step-list li{counter-increment:steps;padding:.8rem 1rem .8rem 3.5rem;position:relative;margin-bottom:.5rem;background:var(--bg2);border-radius:var(--radius-sm);color:var(--text2);font-size:.95rem}
+.step-list li::before{content:counter(steps);position:absolute;left:1rem;top:.8rem;width:24px;height:24px;background:var(--accent);color:var(--bg);border-radius:50%;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono)}
+.visual-diagram{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin:1.5rem 0;text-align:center}
+.visual-diagram svg{max-width:100%;height:auto}
+.diagram-label{font-size:.75rem;color:var(--text3);margin-top:.8rem;font-family:var(--font-mono)}
+.mini-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem}
+.mini-table th{background:var(--bg3);color:var(--accent);padding:.7rem 1rem;text-align:left;font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--accent)}
+.mini-table td{padding:.6rem 1rem;border-bottom:1px solid var(--border);color:var(--text2)}
+.mini-table tr:hover td{background:rgba(0,188,212,.03)}
+.tag{display:inline-block;padding:.2rem .6rem;border-radius:4px;font-size:.75rem;font-weight:600;font-family:var(--font-mono)}
+.tag-blue{background:rgba(0,112,210,.15);color:var(--sap-blue)}
+.tag-green{background:rgba(69,183,100,.15);color:var(--sap-green)}
+.tag-gold{background:rgba(245,166,35,.15);color:var(--sap-gold)}
+.tag-red{background:rgba(227,72,80,.15);color:var(--sap-red)}
+.tag-purple{background:rgba(139,92,246,.15);color:var(--sap-purple)}
+.section-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:1.5rem 0}
+
+/* ── QUIZ CARDS ── */
+.quiz-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:1.5rem;margin:1.5rem 0}
+.quiz-card h4{color:var(--sap-gold);font-size:.85rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
+.quiz-card h4::before{content:'🧠 '}
+.quiz-q{font-weight:600;color:var(--text);margin-bottom:.8rem}
+.quiz-options{display:flex;flex-direction:column;gap:.4rem}
+.quiz-opt{padding:.6rem 1rem;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;font-size:.9rem;color:var(--text2)}
+.quiz-opt:hover{border-color:var(--accent);color:var(--text)}
+.quiz-opt.correct{border-color:var(--sap-green);background:rgba(69,183,100,.1);color:var(--sap-green)}
+.quiz-opt.wrong{border-color:var(--sap-red);background:rgba(227,72,80,.1);color:var(--sap-red)}
+.quiz-explain{display:none;margin-top:.8rem;padding:.8rem;background:var(--surface);border-radius:var(--radius-sm);font-size:.9rem;color:var(--text2)}
+.quiz-card.answered .quiz-explain{display:block}
+
+/* ── FOOTER ── */
+.footer{text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);color:var(--text3);font-size:.85rem}
+.footer a{color:var(--accent);text-decoration:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+.main{padding:1.5rem 1rem 4rem}
+.hero-stats{gap:1rem}
+.topic-header{padding:1rem}
+.topic-body-inner{padding:0 1rem 1rem}
+.nav-progress{display:none}
+.sidebar{width:100%;max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero" id="top">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge"><span class="dot"></span> Interactive Learning Platform</div>
+    <h1>SAP HANA 2.0<br><span>Installation &amp; Administration</span></h1>
+    <p class="hero-sub">A comprehensive, hands-on guide to mastering SAP HANA 2.0 — from architecture fundamentals to advanced administration.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">15</div><div class="label">Chapters</div></div>
+      <div class="hero-stat"><div class="num">90+</div><div class="label">Topics</div></div>
+      <div class="hero-stat"><div class="num">50+</div><div class="label">Code Examples</div></div>
+      <div class="hero-stat"><div class="num">30+</div><div class="label">Quizzes</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+</section>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav" id="mainNav">
+  <div class="nav-inner">
+    <div class="nav-logo"><div class="cube">H</div> HANA 2.0 Guide</div>
+    <div class="nav-progress"><div class="nav-progress-bar" id="progressBar"></div></div>
+    <button class="nav-chapters-btn" onclick="toggleSidebar()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      Chapters
+    </button>
+  </div>
+</nav>
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<div class="sidebar" id="sidebar">
+  <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+  <h3>Table of Contents</h3>
+  <div id="tocList"></div>
+</div>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main" id="mainContent">
+
+<!-- ╔═══════════════════════════════════════╗
+     ║  CHAPTER 1: Introduction to SAP HANA  ║
+     ╚═══════════════════════════════════════╝ -->
+<section class="chapter" id="ch1">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 01</div>
+  <h2>Introduction to SAP HANA 2.0</h2>
+  <p class="chapter-intro">SAP HANA is an in-memory, column-oriented relational database management system. Understanding its core architecture is the foundation for everything that follows.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,112,210,.15);color:var(--sap-blue)">🏛️</span> What is SAP HANA?</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>SAP HANA (High-performance ANalytic Appliance) is an <strong>in-memory database platform</strong> that combines OLAP (Online Analytical Processing) and OLTP (Online Transaction Processing) in a single system. Unlike traditional disk-based databases, HANA stores all data in RAM, enabling query performance measured in milliseconds rather than seconds.</p>
+    <div class="key-concept">
+      <h4>Key Concept</h4>
+      <p>HANA uses <strong>column-based storage</strong> by default. Instead of storing data row-by-row (like traditional RDBMS), it stores each column contiguously in memory. This allows massive compression ratios (often 5:1 to 10:1) and blazing-fast analytical aggregations because the engine only reads the columns it needs.</p>
+    </div>
+    <p>SAP HANA 2.0, released in November 2016, introduced multi-tenant database containers, enhanced high availability, and improved integration with cloud platforms. It serves as the database layer for SAP S/4HANA, SAP BW/4HANA, and many other SAP applications.</p>
+    <table class="mini-table">
+      <tr><th>Feature</th><th>Traditional DB</th><th>SAP HANA</th></tr>
+      <tr><td>Storage</td><td>Disk-based</td><td>In-Memory</td></tr>
+      <tr><td>Orientation</td><td>Row-based</td><td>Column-based (default)</td></tr>
+      <tr><td>Processing</td><td>OLAP or OLTP</td><td>Both (HTAP)</td></tr>
+      <tr><td>Compression</td><td>Limited</td><td>Up to 10:1</td></tr>
+      <tr><td>Text Search</td><td>Separate engine</td><td>Built-in</td></tr>
+    </table>
+    <div class="dig-deeper">
+      <h4>Dig Deeper</h4>
+      <p>Explore these areas for mastery:</p>
+      <ul>
+        <li><strong>Column vs Row store internals</strong> — SAP Note 2222250 explains when to use each</li>
+        <li><strong>Delta merge process</strong> — How HANA moves data from delta store to main store</li>
+        <li><strong>HANA Editions</strong> — Platform vs Express, on-premise vs cloud</li>
+        <li><strong>SAP Note 2000003</strong> — The master FAQ note for SAP HANA</li>
+      </ul>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,188,212,.15);color:var(--accent)">🧩</span> HANA 2.0 Architecture Overview</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>SAP HANA has a layered architecture consisting of multiple services, each handling a specific responsibility. The <strong>Index Server</strong> is the core — it manages data storage, query processing, and transaction management.</p>
+
+    <div class="visual-diagram">
+      <svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00bcd4" stop-opacity="0.2"/><stop offset="100%" stop-color="#0070d2" stop-opacity="0.1"/></linearGradient>
+        </defs>
+        <rect x="10" y="10" width="680" height="50" rx="8" fill="url(#g1)" stroke="#00bcd4" stroke-opacity="0.3"/>
+        <text x="350" y="42" text-anchor="middle" fill="#00bcd4" font-family="DM Sans" font-size="14" font-weight="600">SAP HANA System (SID)</text>
+        <rect x="30" y="80" width="190" height="60" rx="6" fill="#1a2138" stroke="#0070d2" stroke-opacity="0.4"/>
+        <text x="125" y="105" text-anchor="middle" fill="#0070d2" font-family="DM Sans" font-size="12" font-weight="600">Name Server</text>
+        <text x="125" y="125" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Topology &amp; Config</text>
+        <rect x="250" y="80" width="190" height="60" rx="6" fill="#1a2138" stroke="#00bcd4" stroke-opacity="0.4"/>
+        <text x="345" y="105" text-anchor="middle" fill="#00bcd4" font-family="DM Sans" font-size="12" font-weight="600">Index Server ★</text>
+        <text x="345" y="125" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Core Data Engine</text>
+        <rect x="470" y="80" width="190" height="60" rx="6" fill="#1a2138" stroke="#8b5cf6" stroke-opacity="0.4"/>
+        <text x="565" y="105" text-anchor="middle" fill="#8b5cf6" font-family="DM Sans" font-size="12" font-weight="600">Preprocessor Server</text>
+        <text x="565" y="125" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Text Analysis</text>
+        <rect x="30" y="160" width="190" height="60" rx="6" fill="#1a2138" stroke="#f5a623" stroke-opacity="0.4"/>
+        <text x="125" y="185" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12" font-weight="600">Compile Server</text>
+        <text x="125" y="205" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">SQL/Procedure Compile</text>
+        <rect x="250" y="160" width="190" height="60" rx="6" fill="#1a2138" stroke="#45b764" stroke-opacity="0.4"/>
+        <text x="345" y="185" text-anchor="middle" fill="#45b764" font-family="DM Sans" font-size="12" font-weight="600">XS Engine</text>
+        <text x="345" y="205" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">App Server (XSA)</text>
+        <rect x="470" y="160" width="190" height="60" rx="6" fill="#1a2138" stroke="#e34850" stroke-opacity="0.4"/>
+        <text x="565" y="185" text-anchor="middle" fill="#e34850" font-family="DM Sans" font-size="12" font-weight="600">Statistics Server</text>
+        <text x="565" y="205" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Monitoring Data</text>
+        <rect x="30" y="250" width="630" height="50" rx="6" fill="#1a2138" stroke="#f97316" stroke-opacity="0.3"/>
+        <text x="345" y="280" text-anchor="middle" fill="#f97316" font-family="DM Sans" font-size="12" font-weight="600">Persistence Layer — Data Volumes &amp; Log Volumes (Disk Storage)</text>
+      </svg>
+      <div class="diagram-label">SAP HANA 2.0 Service Architecture</div>
+    </div>
+    <p><strong>Index Server</strong> is the heart. It holds the in-memory column store, processes SQL, and manages transactions. The <strong>Name Server</strong> maintains the system landscape and configuration. In scale-out scenarios, it coordinates which host handles which data partition.</p>
+    <div class="pro-tip">
+      <h4>Pro Tip for Admins</h4>
+      <p>Use <code>HDB info</code> from the command line to see which services are running and their process IDs. Use <code>sapcontrol -nr &lt;instance&gt; -function GetProcessList</code> for programmatic checks in scripts and monitoring.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(245,166,35,.15);color:var(--sap-gold)">🔄</span> HANA 2.0 SPS Versions & Lifecycle</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>SAP HANA 2.0 follows a Support Package Stack (SPS) release model. Each SPS brings new features, performance improvements, and bug fixes. Understanding the lifecycle is critical for planning upgrades.</p>
+    <table class="mini-table">
+      <tr><th>SPS</th><th>Release</th><th>Key Features</th></tr>
+      <tr><td><span class="tag tag-blue">SPS 00</span></td><td>Nov 2016</td><td>Multi-tenant DB containers, HANA Cockpit 2.0</td></tr>
+      <tr><td><span class="tag tag-blue">SPS 01</span></td><td>Jun 2017</td><td>Workload management, enhanced backup</td></tr>
+      <tr><td><span class="tag tag-blue">SPS 02</span></td><td>Nov 2017</td><td>Active/Active read-enabled HSR</td></tr>
+      <tr><td><span class="tag tag-blue">SPS 03</span></td><td>Apr 2018</td><td>Native storage extension (NSE)</td></tr>
+      <tr><td><span class="tag tag-blue">SPS 04</span></td><td>Nov 2018</td><td>Persistent memory support, JSON doc store</td></tr>
+      <tr><td><span class="tag tag-green">SPS 05</span></td><td>Jun 2020</td><td>Multi-target replication, data tiering</td></tr>
+      <tr><td><span class="tag tag-green">SPS 06</span></td><td>Dec 2021</td><td>Statement hints, adaptive server config</td></tr>
+      <tr><td><span class="tag tag-green">SPS 07</span></td><td>Jun 2023</td><td>Enhanced NSE, improved memory mgmt</td></tr>
+    </table>
+    <div class="key-concept">
+      <h4>Key Concept</h4>
+      <p>Always check <strong>SAP Note 2235581</strong> for the latest HANA 2.0 revision and maintenance strategy. Plan upgrades at least to the latest SPS to benefit from critical security patches and performance improvements. SAP typically supports each SPS for a defined period.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="quiz-card" id="quiz1">
+  <h4>Check Your Understanding</h4>
+  <div class="quiz-q">What is the primary storage model used by SAP HANA?</div>
+  <div class="quiz-options">
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">Row-based storage on SSD</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'correct')">Column-based in-memory storage</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">Document-based NoSQL storage</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">Key-value pair storage</div>
+  </div>
+  <div class="quiz-explain">✅ SAP HANA uses <strong>column-based in-memory storage</strong> as its default. Data resides in RAM, stored column-by-column, enabling extreme compression and fast analytical queries. Row storage is also available for specific OLTP workloads but is not the default.</div>
+</div>
+</section>
+
+<!-- ╔═════════════════════════════════╗
+     ║  CHAPTER 2: Planning & Sizing   ║
+     ╚═════════════════════════════════╝ -->
+<section class="chapter" id="ch2">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 02</div>
+  <h2>Planning &amp; Sizing</h2>
+  <p class="chapter-intro">Before installing HANA, you must correctly size hardware and plan your landscape. Getting this wrong is the most expensive mistake you can make.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(69,183,100,.15);color:var(--sap-green)">📐</span> Hardware Sizing Fundamentals</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>Sizing SAP HANA means determining the <strong>amount of memory (RAM)</strong> your system needs. HANA is memory-bound — CPU and disk are secondary considerations. All active data must fit in RAM.</p>
+    <div class="key-concept">
+      <h4>Key Concept — The Sizing Formula</h4>
+      <p><strong>Required RAM = (Disk DB size on source ÷ Compression Factor) + Working Memory</strong>. For a BW on HANA migration, expect 5:1 compression. For S/4HANA, use the SAP Sizing Report (transaction /SDF/HDB_SIZING on the source system).</p>
+    </div>
+    <table class="mini-table">
+      <tr><th>Component</th><th>Sizing Rule</th></tr>
+      <tr><td>Data in memory</td><td>Source DB size ÷ compression ratio (typically 3–7x)</td></tr>
+      <tr><td>Working memory</td><td>~50% of data memory (for processing)</td></tr>
+      <tr><td>OS + Services</td><td>~50 GB reserved for HANA services &amp; OS</td></tr>
+      <tr><td>Disk: Data volumes</td><td>4× RAM (for savepoints &amp; snapshots)</td></tr>
+      <tr><td>Disk: Log volumes</td><td>1× RAM (minimum), on separate fast disk</td></tr>
+    </table>
+    <div class="warning-box">
+      <h4>Common Mistake</h4>
+      <p>Never size based solely on current disk usage. You must account for data growth over 3–5 years, seasonal peak loads, and shadow tables. Always add a 20–30% buffer above the calculated RAM requirement.</p>
+    </div>
+    <div class="dig-deeper">
+      <h4>Dig Deeper</h4>
+      <ul>
+        <li><strong>SAP Quick Sizer</strong> — service.sap.com/quicksizer — the official tool for green-field sizing</li>
+        <li><strong>SAP Note 1793345</strong> — Sizing SAP HANA (master sizing note)</li>
+        <li><strong>SAP Note 2296290</strong> — Sizing S/4HANA</li>
+        <li><strong>T-shirt sizing</strong> — For quick estimates, SAP uses S (128 GB), M (256 GB), L (512 GB), XL (1 TB), 2XL (2 TB) etc.</li>
+      </ul>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,188,212,.15);color:var(--accent)">🖥️</span> Certified Hardware & OS Requirements</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>SAP HANA runs only on <strong>SAP-certified hardware</strong>. You cannot install it on arbitrary servers. The certified hardware directory lists approved appliances from vendors like Lenovo, HPE, Dell, Cisco, and Fujitsu.</p>
+    <p><strong>Supported Operating Systems (on-premise):</strong></p>
+    <table class="mini-table">
+      <tr><th>OS</th><th>Versions</th></tr>
+      <tr><td>SUSE Linux Enterprise Server (SLES)</td><td>12 SP2+, 15 SP1+</td></tr>
+      <tr><td>Red Hat Enterprise Linux (RHEL)</td><td>7.6+, 8.x, 9.x</td></tr>
+    </table>
+    <p><strong>Key hardware requirements:</strong> Intel Xeon processors (Haswell or newer), ECC RAM, enterprise SSD/NVMe for persistence, and a dedicated 10 GbE network for system replication.</p>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>Check the <strong>SAP HANA Hardware Directory</strong> at sap.com/dmc/exp/2014-09-02-hana-hardware/enEN/ — always verify your exact server model and firmware version are listed before procurement. Non-certified hardware = no SAP support.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(139,92,246,.15);color:var(--sap-purple)">🗺️</span> Landscape Planning</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>A standard SAP landscape consists of Development (DEV), Quality Assurance (QAS), and Production (PRD) systems. HANA 2.0's multi-tenant database container (MDC) architecture lets you consolidate multiple databases on a single HANA instance.</p>
+    <div class="key-concept">
+      <h4>Key Concept — Scale-Up vs Scale-Out</h4>
+      <p><strong>Scale-Up:</strong> Single server with maximum RAM (up to 24 TB on certified hardware). Best for most workloads. <strong>Scale-Out:</strong> Multiple servers forming a distributed HANA system. Use only when a single server cannot hold all data. Scale-out adds complexity in administration, networking, and failover.</p>
+    </div>
+    <p>Decisions to make during landscape planning:</p>
+    <ol class="step-list">
+      <li>Single-tenant vs multi-tenant database container (MDC) deployment</li>
+      <li>Scale-up vs scale-out topology</li>
+      <li>High Availability: HANA System Replication (HSR) vs storage-based replication</li>
+      <li>Disaster Recovery strategy and RPO/RTO targets</li>
+      <li>Network segmentation: client, internal, replication, and storage networks</li>
+    </ol>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔══════════════════════════════════════╗
+     ║  CHAPTER 3: Installation & Setup     ║
+     ╚══════════════════════════════════════╝ -->
+<section class="chapter" id="ch3">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 03</div>
+  <h2>Installation &amp; Setup</h2>
+  <p class="chapter-intro">Installing SAP HANA involves OS preparation, running the HANA Database Lifecycle Manager (HDBLCM), and post-installation validation. Every step matters.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,112,210,.15);color:var(--sap-blue)">⚙️</span> OS Preparation & Prerequisites</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>Before installing HANA, the operating system must be tuned. SAP provides specific kernel parameters, resource limits, and package requirements.</p>
+    <div class="code-block">
+<span class="comment"># Key OS preparation steps:</span>
+
+<span class="comment"># 1. Disable Transparent Huge Pages (THP)</span>
+<span class="cmd">echo never</span> > /sys/kernel/mm/transparent_hugepage/enabled
+
+<span class="comment"># 2. Set kernel parameters in /etc/sysctl.conf</span>
+net.core.somaxconn = <span class="string">4096</span>
+net.ipv4.tcp_max_syn_backlog = <span class="string">8192</span>
+vm.memory_failure_early_kill = <span class="string">1</span>
+vm.max_map_count = <span class="string">2147483647</span>
+
+<span class="comment"># 3. Configure resource limits (/etc/security/limits.conf)</span>
+@sapsys hard nofile <span class="string">1048576</span>
+@sapsys soft nofile <span class="string">1048576</span>
+@sapsys hard nproc  <span class="string">unlimited</span>
+    </div>
+    <div class="warning-box">
+      <h4>Critical</h4>
+      <p>Run the SAP HANA Hardware and Cloud Measurement Tool (HWCCT) before installation — it validates that your I/O subsystem meets SAP's KPIs. Failing these benchmarks means your system will have performance problems. See SAP Note 1943937.</p>
+    </div>
+    <div class="dig-deeper">
+      <h4>Dig Deeper</h4>
+      <ul>
+        <li><strong>SAP Note 2235581</strong> — SAP HANA 2.0 supported platforms</li>
+        <li><strong>SAP Note 2382421</strong> — Optimizing SLES for HANA</li>
+        <li><strong>SAP Note 2292690</strong> — Optimizing RHEL for HANA</li>
+        <li>Run <code>sapconf</code> or <code>saptune</code> to automatically apply SAP-recommended OS settings</li>
+      </ul>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(69,183,100,.15);color:var(--sap-green)">📦</span> HDBLCM Installation Walkthrough</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>The <strong>HANA Database Lifecycle Manager (HDBLCM)</strong> is the official tool for installing, updating, and managing SAP HANA. It provides both a GUI (browser-based) and a CLI.</p>
+    <ol class="step-list">
+      <li>Download SAP HANA installation media from SAP Software Download Center (support.sap.com)</li>
+      <li>Extract the archive: <code>tar -xvzf IMDB_SERVER*.SAR</code></li>
+      <li>Run the installer as root: <code>./hdblcm --action=install</code></li>
+      <li>Enter SID (System ID) — 3 characters, uppercase: e.g., <code>HDB</code></li>
+      <li>Enter instance number (00-97): e.g., <code>00</code></li>
+      <li>Set the SYSTEM user password (strong, min 8 chars)</li>
+      <li>Choose components: server, AFL, EML, client, etc.</li>
+      <li>Specify data and log volume paths (should be on separate file systems)</li>
+      <li>Confirm and start installation (typically 15–30 minutes)</li>
+    </ol>
+    <div class="code-block">
+<span class="comment"># Interactive installation</span>
+<span class="cmd">./hdblcm</span> --action=install
+
+<span class="comment"># Silent installation with config file</span>
+<span class="cmd">./hdblcm</span> --action=install \
+  --configfile=hana_install.cfg \
+  --batch
+
+<span class="comment"># Key post-install validation</span>
+<span class="cmd">su - hdbadm</span>
+<span class="cmd">HDB info</span>                  <span class="comment"># Check all processes running</span>
+<span class="cmd">hdbsql -i 00 -u SYSTEM</span>   <span class="comment"># Connect to verify SQL access</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> M_DATABASE;  <span class="comment"># Verify database info</span>
+    </div>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>For automated deployments (e.g., Terraform, Ansible), use the <code>--batch</code> flag with a configuration file. Generate a template config with <code>./hdblcm --action=install --dump_configfile_template=template.cfg</code>. This is essential for consistent, repeatable installations across environments.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(245,166,35,.15);color:var(--sap-gold)">✅</span> Post-Installation Checks</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>After installation, validate the system thoroughly before declaring it ready:</p>
+    <div class="code-block">
+<span class="comment"># 1. Check running services</span>
+<span class="cmd">HDB info</span>
+
+<span class="comment"># 2. Verify system DB connectivity</span>
+<span class="cmd">hdbsql</span> -i 00 -d SYSTEMDB -u SYSTEM \
+  "<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> SYS.M_SERVICES"
+
+<span class="comment"># 3. Check memory allocation</span>
+<span class="cmd">hdbsql</span> -i 00 -u SYSTEM \
+  "<span class="keyword">SELECT</span> HOST, USED_PHYSICAL_MEMORY, FREE_PHYSICAL_MEMORY
+   <span class="keyword">FROM</span> SYS.M_HOST_RESOURCE_UTILIZATION"
+
+<span class="comment"># 4. Verify license</span>
+<span class="cmd">hdbsql</span> -i 00 -u SYSTEM \
+  "<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> M_LICENSE"
+
+<span class="comment"># 5. Check alerts</span>
+<span class="cmd">hdbsql</span> -i 00 -u SYSTEM \
+  "<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> _SYS_STATISTICS.STATISTICS_CURRENT_ALERTS"
+    </div>
+    <div class="key-concept">
+      <h4>Key Concept — Instance Numbers & Ports</h4>
+      <p>SAP HANA uses a port numbering scheme based on the instance number. For instance <code>00</code>: SQL port = <strong>30015</strong> (for system DB) or <strong>30013</strong> (for MDC tenant DB via SQL/MDX). The general formula is: <code>3&lt;instance&gt;13</code> for the SQL port and <code>3&lt;instance&gt;15</code> for the internal port. Know these by heart.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="quiz-card" id="quiz2">
+  <h4>Check Your Understanding</h4>
+  <div class="quiz-q">What tool is used to install SAP HANA 2.0?</div>
+  <div class="quiz-options">
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">SWPM (Software Provisioning Manager)</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'correct')">HDBLCM (HANA Database Lifecycle Manager)</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">SAPinst</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">HANA Studio Installation Wizard</div>
+  </div>
+  <div class="quiz-explain">✅ <strong>HDBLCM</strong> is the dedicated tool for installing, updating, uninstalling, and managing SAP HANA lifecycle operations. SWPM is used for installing SAP application layers on top of HANA, not the database itself.</div>
+</div>
+</section>
+
+<!-- ╔════════════════════════════════════════╗
+     ║  CHAPTER 4: Administration Tools       ║
+     ╚════════════════════════════════════════╝ -->
+<section class="chapter" id="ch4">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 04</div>
+  <h2>Administration Tools</h2>
+  <p class="chapter-intro">SAP provides several tools for managing HANA. Knowing which tool to use — and when — makes you an efficient administrator.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,188,212,.15);color:var(--accent)">🎛️</span> SAP HANA Cockpit</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>SAP HANA Cockpit is the <strong>web-based, modern administration tool</strong> — it's the primary tool for HANA 2.0. It replaces most functions of the older HANA Studio.</p>
+    <p><strong>Access URL pattern:</strong> <code>https://&lt;host&gt;:51033</code> (for instance 00). The Cockpit itself runs as an XSA application.</p>
+    <p>Key capabilities:</p>
+    <table class="mini-table">
+      <tr><th>Area</th><th>Functions</th></tr>
+      <tr><td>System Overview</td><td>Health, alerts, resource utilization at a glance</td></tr>
+      <tr><td>Performance</td><td>SQL analyzer, expensive statements, workload analysis</td></tr>
+      <tr><td>Memory</td><td>Used vs allocated, component breakdown, OOM analysis</td></tr>
+      <tr><td>Security</td><td>User management, role assignment, audit configuration</td></tr>
+      <tr><td>Backup</td><td>Schedule, monitor, and catalog backup history</td></tr>
+      <tr><td>Replication</td><td>Configure and monitor system replication status</td></tr>
+    </table>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>Bookmark the <strong>Overall Database Status</strong> tile in Cockpit. Set alert thresholds for memory usage (warn at 80%, critical at 90%) and disk usage (warn at 85%). Configure email notifications via Cockpit → Alert Management so you're never surprised by a resource crunch.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,112,210,.15);color:var(--sap-blue)">💻</span> HANA Studio (Eclipse-based)</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>SAP HANA Studio is an Eclipse-based IDE that provides deep administration and development capabilities. While Cockpit is the strategic direction, Studio remains valuable for tasks like SQL debugging, modeling, and detailed system views.</p>
+    <div class="key-concept">
+      <h4>Key Concept — When to Use Which Tool</h4>
+      <p><strong>Use Cockpit</strong> for: daily monitoring, user management, backup management, alert review, landscape overview. <strong>Use Studio</strong> for: SQL console work, creating calculation views, debugging SQLScript procedures, viewing detailed trace files. <strong>Use hdbsql (CLI)</strong> for: scripting, automation, emergency access when GUI is unavailable.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(249,115,22,.15);color:var(--sap-orange)">⌨️</span> Command Line Tools</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>Master these CLI tools — they're essential for troubleshooting and automation:</p>
+    <div class="code-block">
+<span class="comment"># ── System Control ──</span>
+<span class="cmd">HDB start</span>          <span class="comment"># Start HANA instance</span>
+<span class="cmd">HDB stop</span>           <span class="comment"># Graceful stop</span>
+<span class="cmd">HDB kill</span>           <span class="comment"># Force stop (last resort)</span>
+<span class="cmd">HDB info</span>           <span class="comment"># Show running processes</span>
+<span class="cmd">HDB version</span>        <span class="comment"># Show HANA version</span>
+
+<span class="comment"># ── sapcontrol ──</span>
+<span class="cmd">sapcontrol</span> -nr 00 -function GetProcessList
+<span class="cmd">sapcontrol</span> -nr 00 -function GetSystemInstanceList
+<span class="cmd">sapcontrol</span> -nr 00 -function GetAlerts
+
+<span class="comment"># ── hdbsql (SQL client) ──</span>
+<span class="cmd">hdbsql</span> -i 00 -d SYSTEMDB -u SYSTEM
+<span class="cmd">hdbsql</span> -i 00 -d HDB -u SYSTEM -p "password" \
+  "<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> M_DATABASES"
+
+<span class="comment"># ── HDBLCM (Lifecycle) ──</span>
+<span class="cmd">hdblcm</span> --action=update        <span class="comment"># Apply SPS/revision</span>
+<span class="cmd">hdblcm</span> --list_components     <span class="comment"># List installed components</span>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  CHAPTER 5: Multi-Tenant DB Containers   ║
+     ╚══════════════════════════════════════════╝ -->
+<section class="chapter" id="ch5">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 05</div>
+  <h2>Multi-Tenant Database Containers</h2>
+  <p class="chapter-intro">MDC is a game-changer in HANA 2.0 — run multiple isolated databases on a single HANA system, each with its own users, data, and backups.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,188,212,.15);color:var(--accent)">📦</span> Understanding MDC Architecture</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>In HANA 2.0, every installation is an MDC system, even if you only use one tenant database. The architecture consists of:</p>
+    <div class="visual-diagram">
+      <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="680" height="50" rx="8" fill="rgba(0,188,212,0.08)" stroke="#00bcd4" stroke-opacity="0.3"/>
+        <text x="350" y="42" text-anchor="middle" fill="#00bcd4" font-family="DM Sans" font-size="14" font-weight="600">HANA System (SID: HDB, Instance: 00)</text>
+        <rect x="30" y="80" width="300" height="70" rx="8" fill="#1a2138" stroke="#f5a623" stroke-opacity="0.5"/>
+        <text x="180" y="110" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="13" font-weight="600">SYSTEMDB</text>
+        <text x="180" y="135" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="11">System database — admin &amp; metadata only</text>
+        <rect x="30" y="170" width="195" height="60" rx="8" fill="#1a2138" stroke="#45b764" stroke-opacity="0.5"/>
+        <text x="128" y="195" text-anchor="middle" fill="#45b764" font-family="DM Sans" font-size="13" font-weight="600">Tenant DB: PRD</text>
+        <text x="128" y="215" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">S/4HANA Production</text>
+        <rect x="245" y="170" width="195" height="60" rx="8" fill="#1a2138" stroke="#0070d2" stroke-opacity="0.5"/>
+        <text x="343" y="195" text-anchor="middle" fill="#0070d2" font-family="DM Sans" font-size="13" font-weight="600">Tenant DB: QAS</text>
+        <text x="343" y="215" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Quality Assurance</text>
+        <rect x="460" y="170" width="195" height="60" rx="8" fill="#1a2138" stroke="#8b5cf6" stroke-opacity="0.5"/>
+        <text x="558" y="195" text-anchor="middle" fill="#8b5cf6" font-family="DM Sans" font-size="13" font-weight="600">Tenant DB: DEV</text>
+        <text x="558" y="215" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Development</text>
+        <line x1="180" y1="150" x2="128" y2="170" stroke="#6b7a96" stroke-opacity="0.3" stroke-dasharray="4"/>
+        <line x1="180" y1="150" x2="343" y2="170" stroke="#6b7a96" stroke-opacity="0.3" stroke-dasharray="4"/>
+        <line x1="350" y1="100" x2="558" y2="170" stroke="#6b7a96" stroke-opacity="0.3" stroke-dasharray="4"/>
+      </svg>
+      <div class="diagram-label">MDC Architecture: One system, multiple isolated tenant databases</div>
+    </div>
+    <p><strong>SYSTEMDB</strong> is a special database used only for system administration — creating/deleting tenants, managing system replication, and monitoring. Your application data lives in <strong>tenant databases</strong>. Each tenant is fully isolated: separate memory space, separate backups, separate users.</p>
+    <div class="code-block">
+<span class="comment"># Create a new tenant database</span>
+<span class="cmd">hdbsql</span> -i 00 -d SYSTEMDB -u SYSTEM
+<span class="keyword">CREATE</span> DATABASE DEV SYSTEM USER PASSWORD <span class="string">"SecurePass123!"</span>;
+
+<span class="comment"># List all tenant databases</span>
+<span class="keyword">SELECT</span> DATABASE_NAME, ACTIVE_STATUS <span class="keyword">FROM</span> SYS.M_DATABASES;
+
+<span class="comment"># Connect directly to a tenant</span>
+<span class="cmd">hdbsql</span> -i 00 -d PRD -u SYSTEM
+
+<span class="comment"># Stop a specific tenant (from SYSTEMDB)</span>
+<span class="keyword">ALTER</span> DATABASE DEV STOP;
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔════════════════════════════════════════════╗
+     ║  CHAPTER 6: User & Authorization Mgmt      ║
+     ╚════════════════════════════════════════════╝ -->
+<section class="chapter" id="ch6">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 06</div>
+  <h2>User &amp; Authorization Management</h2>
+  <p class="chapter-intro">Security starts with proper user and privilege management. HANA uses a role-based access control (RBAC) model with granular privileges.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(233,72,80,.15);color:var(--sap-red)">🔐</span> Users, Roles & Privileges</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HANA has four types of privileges:</p>
+    <table class="mini-table">
+      <tr><th>Privilege Type</th><th>Controls</th><th>Example</th></tr>
+      <tr><td><span class="tag tag-blue">System</span></td><td>Administrative operations</td><td>CREATE USER, BACKUP ADMIN</td></tr>
+      <tr><td><span class="tag tag-green">Object</span></td><td>Access to specific DB objects</td><td>SELECT on schema.table</td></tr>
+      <tr><td><span class="tag tag-purple">Analytic</span></td><td>Access to HANA views</td><td>Analytic/Attribute privilege on views</td></tr>
+      <tr><td><span class="tag tag-gold">Package</span></td><td>Repository package access</td><td>REPO.READ on a package</td></tr>
+    </table>
+    <div class="code-block">
+<span class="comment"># Create a user</span>
+<span class="keyword">CREATE</span> USER sap_admin PASSWORD <span class="string">"InitialPass1!"</span>
+  NO FORCE_FIRST_PASSWORD_CHANGE;
+
+<span class="comment"># Create a role</span>
+<span class="keyword">CREATE</span> ROLE HANA_MONITORING;
+
+<span class="comment"># Grant system privileges to role</span>
+<span class="keyword">GRANT</span> CATALOG READ, TRACE ADMIN <span class="keyword">TO</span> HANA_MONITORING;
+
+<span class="comment"># Grant object privileges</span>
+<span class="keyword">GRANT</span> SELECT <span class="keyword">ON</span> SCHEMA _SYS_STATISTICS <span class="keyword">TO</span> HANA_MONITORING;
+
+<span class="comment"># Assign role to user</span>
+<span class="keyword">GRANT</span> HANA_MONITORING <span class="keyword">TO</span> sap_admin;
+
+<span class="comment"># Check user's effective privileges</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> EFFECTIVE_PRIVILEGES
+  <span class="keyword">WHERE</span> USER_NAME = <span class="string">'SAP_ADMIN'</span>;
+    </div>
+    <div class="warning-box">
+      <h4>Security Warning</h4>
+      <p>Never use the SYSTEM user for application access. Create dedicated technical users with minimum required privileges. Immediately change the SYSTEM password after installation and lock it if not needed. Use <code>ALTER USER SYSTEM DEACTIVATE USER NOW</code> after creating admin accounts.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(139,92,246,.15);color:var(--sap-purple)">🔑</span> Authentication Methods</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HANA 2.0 supports multiple authentication mechanisms:</p>
+    <table class="mini-table">
+      <tr><th>Method</th><th>Use Case</th></tr>
+      <tr><td>Password</td><td>Default for database users</td></tr>
+      <tr><td>Kerberos</td><td>Single sign-on with Active Directory</td></tr>
+      <tr><td>SAML</td><td>Web-based SSO via identity providers</td></tr>
+      <tr><td>X.509 Certificates</td><td>Client certificate authentication</td></tr>
+      <tr><td>LDAP</td><td>Centralized directory-based authentication</td></tr>
+    </table>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>For production environments, implement <strong>password policy</strong> via <code>ALTER SYSTEM ALTER CONFIGURATION ('nameserver.ini', 'SYSTEM') SET ('password policy', 'minimal_password_length') = '10'</code>. Set <code>force_first_password_change = true</code>, <code>password_lock_time = 1440</code> (lock for 24 hours after failed attempts), and <code>maximum_invalid_connect_attempts = 5</code>.</p>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔══════════════════════════════════╗
+     ║  CHAPTER 7: Memory Management    ║
+     ╚══════════════════════════════════╝ -->
+<section class="chapter" id="ch7">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 07</div>
+  <h2>Memory Management</h2>
+  <p class="chapter-intro">Memory is the lifeblood of SAP HANA. Understanding how HANA allocates, uses, and manages memory is the most critical skill for an administrator.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,188,212,.15);color:var(--accent)">🧠</span> Memory Architecture</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HANA's memory model has several layers:</p>
+    <div class="visual-diagram">
+      <svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg">
+        <rect x="50" y="10" width="600" height="40" rx="6" fill="rgba(233,72,80,0.1)" stroke="#e34850" stroke-opacity="0.4"/>
+        <text x="350" y="35" text-anchor="middle" fill="#e34850" font-family="DM Sans" font-size="12" font-weight="600">Physical Server RAM (e.g., 1 TB)</text>
+        <rect x="80" y="65" width="540" height="40" rx="6" fill="rgba(245,166,35,0.1)" stroke="#f5a623" stroke-opacity="0.4"/>
+        <text x="350" y="90" text-anchor="middle" fill="#f5a623" font-family="DM Sans" font-size="12" font-weight="600">global_allocation_limit — Max HANA can use (e.g., 900 GB)</text>
+        <rect x="110" y="120" width="230" height="100" rx="6" fill="rgba(0,188,212,0.08)" stroke="#00bcd4" stroke-opacity="0.4"/>
+        <text x="225" y="145" text-anchor="middle" fill="#00bcd4" font-family="DM Sans" font-size="11" font-weight="600">Column Store</text>
+        <text x="225" y="165" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Main store + Delta store</text>
+        <text x="225" y="185" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Tables, indexes, views</text>
+        <text x="225" y="205" text-anchor="middle" fill="#00bcd4" font-family="DM Sans" font-size="10">(Largest consumer)</text>
+        <rect x="360" y="120" width="110" height="100" rx="6" fill="rgba(139,92,246,0.08)" stroke="#8b5cf6" stroke-opacity="0.4"/>
+        <text x="415" y="145" text-anchor="middle" fill="#8b5cf6" font-family="DM Sans" font-size="11" font-weight="600">Row Store</text>
+        <text x="415" y="170" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">System tables</text>
+        <text x="415" y="190" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Temp tables</text>
+        <rect x="490" y="120" width="130" height="100" rx="6" fill="rgba(69,183,100,0.08)" stroke="#45b764" stroke-opacity="0.4"/>
+        <text x="555" y="145" text-anchor="middle" fill="#45b764" font-family="DM Sans" font-size="11" font-weight="600">Code &amp; Stack</text>
+        <text x="555" y="165" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">SQL plan cache</text>
+        <text x="555" y="185" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Thread stacks</text>
+        <text x="555" y="205" text-anchor="middle" fill="#6b7a96" font-family="DM Sans" font-size="10">Statement mem</text>
+        <rect x="110" y="240" width="510" height="30" rx="6" fill="rgba(249,115,22,0.08)" stroke="#f97316" stroke-opacity="0.3"/>
+        <text x="365" y="260" text-anchor="middle" fill="#f97316" font-family="DM Sans" font-size="10">Shared Memory: Communication buffers, caches, temporary results</text>
+      </svg>
+      <div class="diagram-label">SAP HANA Memory Model — Layered Architecture</div>
+    </div>
+    <div class="key-concept">
+      <h4>Key Concept — Allocation Limit</h4>
+      <p>The <strong>global_allocation_limit</strong> parameter (in <code>global.ini → [memorymanager]</code>) sets the maximum memory HANA is allowed to use. Set this to <strong>90% of physical RAM</strong> to leave room for the OS. If HANA exceeds this limit, it triggers Out-of-Memory (OOM) handling which kills expensive statements or ultimately crashes the system.</p>
+    </div>
+    <div class="code-block">
+<span class="comment"># Check current memory usage</span>
+<span class="keyword">SELECT</span>
+  HOST,
+  ROUND(USED_PHYSICAL_MEMORY/1024/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"Used_GB"</span>,
+  ROUND(FREE_PHYSICAL_MEMORY/1024/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"Free_GB"</span>,
+  ROUND(INSTANCE_TOTAL_MEMORY_USED_SIZE/1024/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"HANA_Used_GB"</span>,
+  ROUND(ALLOCATION_LIMIT/1024/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"Alloc_Limit_GB"</span>
+<span class="keyword">FROM</span> SYS.M_HOST_RESOURCE_UTILIZATION;
+
+<span class="comment"># Memory by component</span>
+<span class="keyword">SELECT</span>
+  COMPONENT,
+  ROUND(USED_MEMORY_SIZE/1024/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"Used_GB"</span>
+<span class="keyword">FROM</span> SYS.M_SERVICE_COMPONENT_MEMORY
+<span class="keyword">ORDER BY</span> USED_MEMORY_SIZE <span class="keyword">DESC</span>;
+    </div>
+    <div class="warning-box">
+      <h4>OOM Emergency Response</h4>
+      <p>When HANA runs low on memory: (1) It first kills the most expensive running statements. (2) Then it unloads column store tables marked as unloadable. (3) If that's not enough, it may crash. Always monitor the <code>M_HOST_RESOURCE_UTILIZATION</code> view and set up alerts at 80% and 90% of the allocation limit.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(245,166,35,.15);color:var(--sap-gold)">🧊</span> Native Storage Extension (NSE)</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>NSE (introduced in SPS 03) allows you to move "warm" data (infrequently accessed but occasionally queried) from in-memory to disk-based storage, while keeping "hot" data in RAM. This dramatically reduces memory costs.</p>
+    <div class="code-block">
+<span class="comment"># Enable NSE on a column store table</span>
+<span class="keyword">ALTER</span> TABLE my_schema.large_history_table
+  PAGE LOADABLE;
+
+<span class="comment"># Move it back to in-memory (column loadable)</span>
+<span class="keyword">ALTER</span> TABLE my_schema.large_history_table
+  COLUMN LOADABLE;
+
+<span class="comment"># Check which tables use NSE</span>
+<span class="keyword">SELECT</span> SCHEMA_NAME, TABLE_NAME, LOAD_UNIT
+<span class="keyword">FROM</span> SYS.TABLES
+<span class="keyword">WHERE</span> LOAD_UNIT = <span class="string">'PAGE'</span>;
+    </div>
+    <div class="key-concept">
+      <h4>Key Concept</h4>
+      <p><strong>COLUMN LOADABLE</strong> = traditional in-memory (fast, expensive). <strong>PAGE LOADABLE</strong> = NSE disk-based with buffer cache (slower queries, much less RAM). Use NSE for audit logs, historical data, and large tables accessed less than daily. A good rule of thumb: if a table is accessed less than once per hour, consider NSE.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="quiz-card" id="quiz3">
+  <h4>Check Your Understanding</h4>
+  <div class="quiz-q">What should you set the global_allocation_limit to?</div>
+  <div class="quiz-options">
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">100% of physical RAM</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'correct')">~90% of physical RAM</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">50% of physical RAM</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">Equal to the data size on disk</div>
+  </div>
+  <div class="quiz-explain">✅ Set it to approximately <strong>90% of physical RAM</strong>. The remaining 10% is reserved for the operating system, OS file cache, and non-HANA processes. Setting it to 100% risks OS-level OOM kills.</div>
+</div>
+</section>
+
+<!-- ╔══════════════════════════════════╗
+     ║  CHAPTER 8: Backup & Recovery    ║
+     ╚══════════════════════════════════╝ -->
+<section class="chapter" id="ch8">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 08</div>
+  <h2>Backup &amp; Recovery</h2>
+  <p class="chapter-intro">Backups are your insurance policy. HANA offers flexible backup strategies — file-based, third-party tools (Backint), and storage snapshots. Master all of them.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(69,183,100,.15);color:var(--sap-green)">💾</span> Backup Types & Strategy</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <table class="mini-table">
+      <tr><th>Backup Type</th><th>What It Captures</th><th>When to Use</th></tr>
+      <tr><td><span class="tag tag-green">Complete Data</span></td><td>All data + redo logs since last savepoint</td><td>Weekly or nightly — your baseline</td></tr>
+      <tr><td><span class="tag tag-blue">Differential</span></td><td>Changes since last full backup</td><td>Daily between full backups</td></tr>
+      <tr><td><span class="tag tag-gold">Incremental</span></td><td>Changes since last any backup</td><td>Hourly for critical systems</td></tr>
+      <tr><td><span class="tag tag-purple">Log (continuous)</span></td><td>Transaction redo logs</td><td>Always ON — enables point-in-time recovery</td></tr>
+    </table>
+    <div class="code-block">
+<span class="comment"># Full backup via SQL</span>
+<span class="keyword">BACKUP</span> DATA USING FILE (<span class="string">'/hana/backup/data/FULL'</span>);
+
+<span class="comment"># Differential backup</span>
+<span class="keyword">BACKUP</span> DATA DIFFERENTIAL USING FILE (<span class="string">'/hana/backup/data/DIFF'</span>);
+
+<span class="comment"># Incremental backup</span>
+<span class="keyword">BACKUP</span> DATA INCREMENTAL USING FILE (<span class="string">'/hana/backup/data/INCR'</span>);
+
+<span class="comment"># Enable log backup (CRITICAL — must be enabled!)</span>
+<span class="keyword">ALTER</span> SYSTEM <span class="keyword">ALTER</span> CONFIGURATION (<span class="string">'global.ini'</span>, <span class="string">'SYSTEM'</span>)
+  SET (<span class="string">'persistence'</span>, <span class="string">'log_mode'</span>) = <span class="string">'normal'</span>;
+
+<span class="comment"># Set log backup interval (every 15 minutes)</span>
+<span class="keyword">ALTER</span> SYSTEM <span class="keyword">ALTER</span> CONFIGURATION (<span class="string">'global.ini'</span>, <span class="string">'SYSTEM'</span>)
+  SET (<span class="string">'persistence'</span>, <span class="string">'log_backup_interval_s'</span>) = <span class="string">'900'</span>;
+
+<span class="comment"># Check backup catalog</span>
+<span class="keyword">SELECT</span> BACKUP_ID, UTC_START_TIME, ENTRY_TYPE_NAME, STATE_NAME
+<span class="keyword">FROM</span> SYS.M_BACKUP_CATALOG
+<span class="keyword">ORDER BY</span> UTC_START_TIME <span class="keyword">DESC</span>;
+    </div>
+    <div class="warning-box">
+      <h4>Critical</h4>
+      <p>Log mode must be set to <code>normal</code> (not <code>overwrite</code>) for production systems. Without log backups, you can only recover to the last full/differential backup — losing all transactions since then. Log segments also fill up and eventually halt the database if not backed up.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(233,72,80,.15);color:var(--sap-red)">🔄</span> Recovery Procedures</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>Recovery scenarios you must be prepared for:</p>
+    <ol class="step-list">
+      <li><strong>Point-in-time recovery</strong> — Recover to a specific timestamp (requires log backups)</li>
+      <li><strong>Most recent state</strong> — Recover everything up to the last committed transaction</li>
+      <li><strong>Specific backup</strong> — Recover from a particular backup ID</li>
+      <li><strong>Tenant-specific recovery</strong> — In MDC, you can recover individual tenants without affecting others</li>
+    </ol>
+    <div class="code-block">
+<span class="comment"># Recovery to most recent state</span>
+<span class="keyword">RECOVER</span> DATA USING FILE (<span class="string">'/hana/backup/data/FULL'</span>)
+  CLEAR LOG;
+
+<span class="comment"># Point-in-time recovery</span>
+<span class="keyword">RECOVER</span> DATABASE UNTIL TIMESTAMP
+  <span class="string">'2024-06-15 14:30:00'</span>
+  USING FILE (<span class="string">'/hana/backup/data/FULL'</span>)
+  USING LOG PATH (<span class="string">'/hana/backup/log'</span>)
+  CLEAR LOG;
+
+<span class="comment"># Recovery of a specific tenant (from SYSTEMDB)</span>
+<span class="keyword">RECOVER</span> DATABASE FOR PRD UNTIL TIMESTAMP
+  <span class="string">'2024-06-15 14:30:00'</span>
+  USING FILE (<span class="string">'/hana/backup/data/FULL'</span>)
+  USING LOG PATH (<span class="string">'/hana/backup/log'</span>)
+  CLEAR LOG;
+    </div>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>Test your recovery procedures at least quarterly. Create a documented Recovery Runbook with step-by-step procedures for each scenario. Time your recovery — know how long a full restore takes so you can set realistic RTO expectations with stakeholders.</p>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔══════════════════════════════════════════╗
+     ║  CHAPTER 9: High Availability & DR       ║
+     ╚══════════════════════════════════════════╝ -->
+<section class="chapter" id="ch9">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 09</div>
+  <h2>High Availability &amp; Disaster Recovery</h2>
+  <p class="chapter-intro">HANA System Replication (HSR) is your primary tool for HA and DR. Understand the replication modes, takeover procedures, and cluster integration.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,112,210,.15);color:var(--sap-blue)">🔗</span> HANA System Replication (HSR)</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HSR continuously replicates data from a primary to a secondary HANA system. It operates at the <strong>persistence layer</strong>, shipping redo log buffers from primary to secondary.</p>
+    <table class="mini-table">
+      <tr><th>Replication Mode</th><th>Data Loss Risk</th><th>Performance Impact</th><th>Use Case</th></tr>
+      <tr><td><span class="tag tag-green">SYNC</span></td><td>Zero (RPO = 0)</td><td>Higher latency</td><td>HA — same datacenter</td></tr>
+      <tr><td><span class="tag tag-blue">SYNCMEM</span></td><td>Near-zero</td><td>Moderate</td><td>HA — same datacenter</td></tr>
+      <tr><td><span class="tag tag-gold">ASYNC</span></td><td>Possible (seconds)</td><td>Minimal</td><td>DR — remote datacenter</td></tr>
+    </table>
+    <div class="code-block">
+<span class="comment"># ── On PRIMARY system (as &lt;sid&gt;adm) ──</span>
+<span class="comment"># Enable system replication</span>
+<span class="cmd">hdbnsutil</span> -sr_enable --name=DC1_PRIMARY
+
+<span class="comment"># ── On SECONDARY system (as &lt;sid&gt;adm) ──</span>
+<span class="comment"># Stop the instance first</span>
+<span class="cmd">HDB stop</span>
+
+<span class="comment"># Register as secondary</span>
+<span class="cmd">hdbnsutil</span> -sr_register \
+  --name=DC2_SECONDARY \
+  --remoteHost=hana-primary \
+  --remoteInstance=00 \
+  --replicationMode=syncmem \
+  --operationMode=logreplay
+
+<span class="comment"># Start the secondary</span>
+<span class="cmd">HDB start</span>
+
+<span class="comment"># ── Check replication status ──</span>
+<span class="cmd">hdbnsutil</span> -sr_state
+<span class="comment"># Or via SQL on primary:</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> SYS.M_SERVICE_REPLICATION;
+    </div>
+    <div class="key-concept">
+      <h4>Key Concept — Operation Modes</h4>
+      <p><strong>logreplay:</strong> Secondary replays logs as they arrive — the secondary is always in recovery mode. <strong>logreplay_readaccess:</strong> Same, but allows read-only SQL access to the secondary (Active/Active read-enabled). <strong>delta_datashipping:</strong> Periodic full data shipping — legacy, rarely used. Always prefer <code>logreplay</code> for performance.</p>
+    </div>
+    <div class="dig-deeper">
+      <h4>Dig Deeper</h4>
+      <ul>
+        <li><strong>Multi-tier replication</strong> — Chain replication: Primary → Secondary (sync) → Tertiary (async for DR)</li>
+        <li><strong>Multi-target replication</strong> (SPS 05+) — Primary replicates to multiple secondaries simultaneously</li>
+        <li><strong>Cluster integration</strong> — Use Pacemaker/SUSE HAE or RHEL HA Add-on for automated failover with SAPHanaSR resource agents</li>
+        <li><strong>SAP Note 1999880</strong> — FAQ on HANA System Replication</li>
+      </ul>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(233,72,80,.15);color:var(--sap-red)">⚡</span> Takeover Procedures</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <div class="code-block">
+<span class="comment"># ── Manual takeover (planned) ──</span>
+<span class="comment"># On SECONDARY:</span>
+<span class="cmd">hdbnsutil</span> -sr_takeover
+
+<span class="comment"># ── Forced takeover (primary is down) ──</span>
+<span class="cmd">hdbnsutil</span> -sr_takeover --force
+
+<span class="comment"># ── After takeover: re-register old primary as new secondary ──</span>
+<span class="comment"># On OLD PRIMARY (now becoming secondary):</span>
+<span class="cmd">HDB stop</span>
+<span class="cmd">hdbnsutil</span> -sr_register \
+  --name=DC1_PRIMARY \
+  --remoteHost=hana-secondary \
+  --remoteInstance=00 \
+  --replicationMode=syncmem \
+  --operationMode=logreplay
+<span class="cmd">HDB start</span>
+    </div>
+    <div class="warning-box">
+      <h4>Critical for Production</h4>
+      <p>Always test takeover procedures before going live. Document the exact sequence: (1) verify secondary is synchronized, (2) perform takeover, (3) switch application connections (virtual IP/hostname), (4) verify application connectivity, (5) re-register old primary. Practice until your team can execute this in under 15 minutes.</p>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════╗
+     ║  CHAPTER 10: Performance Monitoring          ║
+     ╚══════════════════════════════════════════════╝ -->
+<section class="chapter" id="ch10">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 10</div>
+  <h2>Performance Monitoring &amp; Optimization</h2>
+  <p class="chapter-intro">Performance tuning in HANA focuses on SQL optimization, memory management, and understanding the workload. Your most powerful tools are the monitoring views.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,188,212,.15);color:var(--accent)">📊</span> Essential Monitoring Views</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HANA's <code>SYS.M_*</code> monitoring views are your Swiss Army knife. Here are the ones you should query daily:</p>
+    <div class="code-block">
+<span class="comment"># ── Top 10 most expensive SQL statements ──</span>
+<span class="keyword">SELECT</span> TOP 10
+  STATEMENT_HASH,
+  EXECUTION_COUNT,
+  ROUND(TOTAL_EXECUTION_TIME/1000000, 2) <span class="keyword">AS</span> <span class="string">"Total_Sec"</span>,
+  ROUND(AVG_EXECUTION_TIME/1000, 2) <span class="keyword">AS</span> <span class="string">"Avg_ms"</span>,
+  TOTAL_LOCK_WAIT_COUNT,
+  STATEMENT_STRING
+<span class="keyword">FROM</span> SYS.M_SQL_PLAN_CACHE
+<span class="keyword">ORDER BY</span> TOTAL_EXECUTION_TIME <span class="keyword">DESC</span>;
+
+<span class="comment"># ── Currently running expensive statements ──</span>
+<span class="keyword">SELECT</span>
+  CONNECTION_ID,
+  STATEMENT_ID,
+  ROUND(DURATION/1000000, 2) <span class="keyword">AS</span> <span class="string">"Duration_Sec"</span>,
+  ALLOCATED_MEMORY_SIZE/1024/1024 <span class="keyword">AS</span> <span class="string">"Mem_MB"</span>,
+  STATEMENT_STRING
+<span class="keyword">FROM</span> SYS.M_EXPENSIVE_STATEMENTS
+<span class="keyword">WHERE</span> STATUS = <span class="string">'EXECUTING'</span>
+<span class="keyword">ORDER BY</span> DURATION <span class="keyword">DESC</span>;
+
+<span class="comment"># ── Table sizes and memory consumption ──</span>
+<span class="keyword">SELECT</span>
+  SCHEMA_NAME, TABLE_NAME,
+  ROUND(MEMORY_SIZE_IN_TOTAL/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"Total_MB"</span>,
+  RECORD_COUNT, LOAD_UNIT
+<span class="keyword">FROM</span> SYS.M_CS_TABLES
+<span class="keyword">ORDER BY</span> MEMORY_SIZE_IN_TOTAL <span class="keyword">DESC</span>
+FETCH FIRST 20 ROWS ONLY;
+
+<span class="comment"># ── Blocked transactions ──</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> SYS.M_BLOCKED_TRANSACTIONS;
+
+<span class="comment"># ── Disk space usage ──</span>
+<span class="keyword">SELECT</span>
+  HOST, USAGE_TYPE,
+  ROUND(TOTAL_SIZE/1024/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"Total_GB"</span>,
+  ROUND(USED_SIZE/1024/1024/1024, 2) <span class="keyword">AS</span> <span class="string">"Used_GB"</span>
+<span class="keyword">FROM</span> SYS.M_DISKS;
+    </div>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>Create a "Daily Health Check" SQL script that queries all these views and outputs a concise report. Schedule it via a cron job or HANA's built-in job scheduler. Over time, these daily snapshots become invaluable for spotting trends (growing tables, degrading query times, memory creep).</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(139,92,246,.15);color:var(--sap-purple)">🔧</span> SQL Tuning Techniques</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>Key optimization strategies for HANA SQL:</p>
+    <div class="key-concept">
+      <h4>Key Concept — EXPLAIN PLAN</h4>
+      <p>Always start with <code>EXPLAIN PLAN FOR &lt;your_query&gt;</code>. Look for full table scans on large tables (should be column scans or index lookups), excessive data transfer between nodes (in scale-out), and large intermediate result sets. The plan visualizer in HANA Cockpit or Studio shows this graphically.</p>
+    </div>
+    <p><strong>Common tuning actions:</strong></p>
+    <ol class="step-list">
+      <li><strong>Use the right store</strong> — Analytical queries on column store, heavy single-row lookups on row store</li>
+      <li><strong>Partition large tables</strong> — Hash, range, or round-robin partitioning distributes load</li>
+      <li><strong>Push down calculations</strong> — Use calculation views and SQL functions instead of pulling data to the application layer</li>
+      <li><strong>Avoid SELECT *</strong> — Column store benefits most when you select only needed columns</li>
+      <li><strong>Monitor delta merge</strong> — Unmerged delta stores degrade query performance</li>
+    </ol>
+    <div class="code-block">
+<span class="comment"># Check delta merge status for a table</span>
+<span class="keyword">SELECT</span> SCHEMA_NAME, TABLE_NAME,
+  RAW_RECORD_COUNT_IN_DELTA, RECORD_COUNT_IN_MAIN,
+  LAST_MERGE_TIME
+<span class="keyword">FROM</span> SYS.M_CS_TABLES
+<span class="keyword">WHERE</span> RAW_RECORD_COUNT_IN_DELTA > 1000000;
+
+<span class="comment"># Trigger a manual delta merge</span>
+<span class="keyword">MERGE DELTA OF</span> my_schema.my_table;
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔═══════════════════════════════╗
+     ║  CHAPTER 11: Security          ║
+     ╚═══════════════════════════════╝ -->
+<section class="chapter" id="ch11">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 11</div>
+  <h2>Security Hardening</h2>
+  <p class="chapter-intro">HANA security encompasses encryption, auditing, network security, and the principle of least privilege. A layered defense approach is essential.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(233,72,80,.15);color:var(--sap-red)">🛡️</span> Encryption & Network Security</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HANA supports encryption at three levels:</p>
+    <table class="mini-table">
+      <tr><th>Layer</th><th>What</th><th>How</th></tr>
+      <tr><td><span class="tag tag-blue">In-Transit</span></td><td>Client-server communication</td><td>TLS/SSL with X.509 certificates</td></tr>
+      <tr><td><span class="tag tag-green">At-Rest (Data)</span></td><td>Data and log volumes on disk</td><td>Data volume encryption (AES-256-CBC)</td></tr>
+      <tr><td><span class="tag tag-purple">At-Rest (Backup)</span></td><td>Backup files</td><td>Backup encryption with AES-256</td></tr>
+    </table>
+    <div class="code-block">
+<span class="comment"># Enable data volume encryption</span>
+<span class="keyword">ALTER</span> SYSTEM <span class="keyword">ALTER</span> CONFIGURATION (<span class="string">'global.ini'</span>, <span class="string">'SYSTEM'</span>)
+  SET (<span class="string">'persistence'</span>, <span class="string">'encryption'</span>) = <span class="string">'true'</span>;
+
+<span class="comment"># Create an encrypted backup</span>
+<span class="keyword">BACKUP</span> DATA USING FILE (<span class="string">'/hana/backup/data/FULL'</span>)
+  ENCRYPT;
+
+<span class="comment"># Enable SSL for client connections</span>
+<span class="comment"># In indexserver.ini → [communication] → ssl = on</span>
+<span class="keyword">ALTER</span> SYSTEM <span class="keyword">ALTER</span> CONFIGURATION (<span class="string">'indexserver.ini'</span>, <span class="string">'SYSTEM'</span>)
+  SET (<span class="string">'communication'</span>, <span class="string">'ssl'</span>) = <span class="string">'on'</span>;
+    </div>
+  </div></div>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(245,166,35,.15);color:var(--sap-gold)">📋</span> Auditing & Compliance</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <div class="code-block">
+<span class="comment"># Create an audit policy for DDL changes</span>
+<span class="keyword">CREATE</span> AUDIT POLICY pol_ddl_monitoring
+  AUDITING SUCCESSFUL
+  ACTIONS CREATE TABLE, DROP TABLE, ALTER TABLE
+  LEVEL CRITICAL;
+
+<span class="comment"># Activate the policy</span>
+<span class="keyword">ALTER</span> AUDIT POLICY pol_ddl_monitoring ENABLE;
+
+<span class="comment"># Create policy for failed login attempts</span>
+<span class="keyword">CREATE</span> AUDIT POLICY pol_failed_logins
+  AUDITING UNSUCCESSFUL
+  ACTIONS CONNECT
+  LEVEL WARNING;
+
+<span class="keyword">ALTER</span> AUDIT POLICY pol_failed_logins ENABLE;
+
+<span class="comment"># Query audit log</span>
+<span class="keyword">SELECT</span> TIMESTAMP, USER_NAME, ACTION_NAME,
+  STATEMENT_STRING, AUDIT_LEVEL
+<span class="keyword">FROM</span> SYS.AUDIT_LOG
+<span class="keyword">ORDER BY</span> TIMESTAMP <span class="keyword">DESC</span>;
+    </div>
+    <div class="dig-deeper">
+      <h4>Dig Deeper</h4>
+      <ul>
+        <li><strong>SAP HANA Security Guide</strong> — The definitive 200+ page reference on help.sap.com</li>
+        <li><strong>SAP Note 2159014</strong> — Security checklist for SAP HANA</li>
+        <li><strong>HANA Secure Store (SSFS)</strong> — How encryption keys are managed</li>
+        <li><strong>Data Masking</strong> — Dynamic data masking for hiding PII from unauthorized users</li>
+      </ul>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔══════════════════════════════════════╗
+     ║  CHAPTER 12: Configuration Mgmt      ║
+     ╚══════════════════════════════════════╝ -->
+<section class="chapter" id="ch12">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 12</div>
+  <h2>Configuration Management</h2>
+  <p class="chapter-intro">HANA configuration is stored in INI files with a layered hierarchy. Understanding how configuration layers work prevents mysterious behavior.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,188,212,.15);color:var(--accent)">📝</span> Configuration Layers & INI Files</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HANA configuration follows a hierarchy — higher layers override lower ones:</p>
+    <ol class="step-list">
+      <li><strong>DEFAULT</strong> — Built-in defaults (cannot be changed)</li>
+      <li><strong>SYSTEM</strong> — System-wide settings (apply to all hosts)</li>
+      <li><strong>HOST</strong> — Host-specific overrides (for individual servers)</li>
+      <li><strong>DATABASE</strong> — Tenant-specific settings (in MDC)</li>
+    </ol>
+    <p><strong>Key INI files you'll work with regularly:</strong></p>
+    <table class="mini-table">
+      <tr><th>File</th><th>Controls</th></tr>
+      <tr><td><code>global.ini</code></td><td>Memory limits, persistence, backup, auditing</td></tr>
+      <tr><td><code>indexserver.ini</code></td><td>SQL processing, joins, communication, SSL</td></tr>
+      <tr><td><code>nameserver.ini</code></td><td>Topology, password policy, landscape</td></tr>
+      <tr><td><code>daemon.ini</code></td><td>Instance startup, services to run</td></tr>
+      <tr><td><code>xsengine.ini</code></td><td>XS Advanced settings</td></tr>
+    </table>
+    <div class="code-block">
+<span class="comment"># View a configuration parameter</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> SYS.M_INIFILE_CONTENTS
+<span class="keyword">WHERE</span> FILE_NAME = <span class="string">'global.ini'</span>
+  <span class="keyword">AND</span> SECTION = <span class="string">'memorymanager'</span>;
+
+<span class="comment"># Change a system-level parameter</span>
+<span class="keyword">ALTER</span> SYSTEM <span class="keyword">ALTER</span> CONFIGURATION (<span class="string">'global.ini'</span>, <span class="string">'SYSTEM'</span>)
+  SET (<span class="string">'memorymanager'</span>, <span class="string">'global_allocation_limit'</span>) = <span class="string">'920000'</span>;
+
+<span class="comment"># Change a host-level parameter</span>
+<span class="keyword">ALTER</span> SYSTEM <span class="keyword">ALTER</span> CONFIGURATION (<span class="string">'indexserver.ini'</span>, <span class="string">'HOST'</span>, <span class="string">'hana01'</span>)
+  SET (<span class="string">'joins'</span>, <span class="string">'max_concurrency'</span>) = <span class="string">'0'</span>;
+
+<span class="comment"># Reset to default (remove override)</span>
+<span class="keyword">ALTER</span> SYSTEM <span class="keyword">ALTER</span> CONFIGURATION (<span class="string">'global.ini'</span>, <span class="string">'SYSTEM'</span>)
+  UNSET (<span class="string">'memorymanager'</span>, <span class="string">'global_allocation_limit'</span>);
+    </div>
+    <div class="warning-box">
+      <h4>Important</h4>
+      <p>Never edit INI files directly on disk. Always use SQL <code>ALTER SYSTEM ALTER CONFIGURATION</code> or the HANA Cockpit. Direct file edits may be overwritten, may not take effect until restart, and bypass the configuration change audit trail.</p>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔═════════════════════════════════════════╗
+     ║  CHAPTER 13: Data Provisioning          ║
+     ╚═════════════════════════════════════════╝ -->
+<section class="chapter" id="ch13">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 13</div>
+  <h2>Data Provisioning &amp; Integration</h2>
+  <p class="chapter-intro">Getting data into HANA efficiently is critical. HANA supports real-time replication, ETL, and smart data access for federated queries.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(69,183,100,.15);color:var(--sap-green)">🔀</span> Data Loading Methods</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <table class="mini-table">
+      <tr><th>Method</th><th>Best For</th><th>Performance</th></tr>
+      <tr><td><span class="tag tag-green">SLT (Trigger-based)</span></td><td>Real-time replication from SAP ERP</td><td>Near real-time (seconds)</td></tr>
+      <tr><td><span class="tag tag-blue">Smart Data Integration</span></td><td>ETL from multiple sources with transformations</td><td>Batch or real-time</td></tr>
+      <tr><td><span class="tag tag-gold">IMPORT FROM / EXPORT TO</span></td><td>CSV and binary file loading</td><td>Bulk (fast for initial loads)</td></tr>
+      <tr><td><span class="tag tag-purple">Smart Data Access (SDA)</span></td><td>Federated queries without moving data</td><td>Depends on remote source</td></tr>
+      <tr><td><span class="tag tag-red">DB Migration (DMO)</span></td><td>One-time migration from source DB to HANA</td><td>Bulk one-time</td></tr>
+    </table>
+    <div class="code-block">
+<span class="comment"># Import CSV data</span>
+<span class="keyword">IMPORT FROM</span> CSV FILE <span class="string">'/hana/data/import/customers.csv'</span>
+  <span class="keyword">INTO</span> my_schema.customers
+  WITH RECORD DELIMITED BY <span class="string">'\n'</span>
+  FIELD DELIMITED BY <span class="string">','</span>
+  THREADS 10
+  BATCH 10000;
+
+<span class="comment"># Create a remote source (Smart Data Access)</span>
+<span class="keyword">CREATE</span> REMOTE SOURCE my_oracle
+  ADAPTER <span class="string">"odbc"</span>
+  CONFIGURATION <span class="string">'DSN=ORA_PROD'</span>
+  WITH CREDENTIAL TYPE <span class="string">'PASSWORD'</span>
+  USING <span class="string">'user=sap_read;password=***'</span>;
+
+<span class="comment"># Query remote data as if it were local</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> my_oracle.ORACLE_SCHEMA.REMOTE_TABLE;
+    </div>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>For large initial data loads (100 GB+), use the <code>IMPORT FROM</code> statement with the <code>THREADS</code> parameter set to the number of CPU cores available. This parallelizes the load and can achieve throughput of 1+ TB/hour on modern hardware. Disable logging during initial load with <code>ALTER TABLE ... DISABLE LOG</code> (remember to re-enable after!).</p>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔═══════════════════════════════════╗
+     ║  CHAPTER 14: Troubleshooting      ║
+     ╚═══════════════════════════════════╝ -->
+<section class="chapter" id="ch14">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 14</div>
+  <h2>Troubleshooting</h2>
+  <p class="chapter-intro">When things go wrong — and they will — you need a systematic approach. Trace files, diagnostic views, and SAP support tools are your weapons.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(233,72,80,.15);color:var(--sap-red)">🔍</span> Diagnostic Methodology</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>Follow this systematic approach when troubleshooting:</p>
+    <ol class="step-list">
+      <li><strong>Check alerts first</strong> — <code>SELECT * FROM _SYS_STATISTICS.STATISTICS_CURRENT_ALERTS WHERE ALERT_RATING >= 3</code></li>
+      <li><strong>Review trace files</strong> — <code>/usr/sap/&lt;SID&gt;/HDB&lt;inst&gt;/&lt;host&gt;/trace/</code> — look for <code>indexserver_alert_&lt;host&gt;.trc</code></li>
+      <li><strong>Check system availability</strong> — <code>M_SERVICE_STATISTICS</code> for restart timestamps</li>
+      <li><strong>Analyze resource usage</strong> — Memory, CPU, disk from monitoring views</li>
+      <li><strong>Check expensive statements</strong> — Often performance issues are caused by a single bad query</li>
+      <li><strong>Review configuration changes</strong> — <code>M_INIFILE_CONTENT_HISTORY</code> for recent config changes</li>
+    </ol>
+    <div class="code-block">
+<span class="comment"># ── Troubleshooting command toolkit ──</span>
+
+<span class="comment"># Check for recent crashes/restarts</span>
+<span class="keyword">SELECT</span> HOST, SERVICE_NAME, ACTIVE_STATUS,
+  START_TIME, COORDINATOR_TYPE
+<span class="keyword">FROM</span> SYS.M_SERVICES
+<span class="keyword">WHERE</span> ACTIVE_STATUS != <span class="string">'YES'</span>;
+
+<span class="comment"># View current alerts</span>
+<span class="keyword">SELECT</span> ALERT_ID, ALERT_RATING, ALERT_NAME,
+  ALERT_DETAILS, ALERT_TIMESTAMP
+<span class="keyword">FROM</span> _SYS_STATISTICS.STATISTICS_CURRENT_ALERTS
+<span class="keyword">WHERE</span> ALERT_RATING >= 3
+<span class="keyword">ORDER BY</span> ALERT_TIMESTAMP <span class="keyword">DESC</span>;
+
+<span class="comment"># Check for long-running transactions</span>
+<span class="keyword">SELECT</span> CONNECTION_ID, TRANSACTION_ID,
+  UPDATE_TRANSACTION_ID,
+  ROUND(IDLE_TIME/1000, 0) <span class="keyword">AS</span> <span class="string">"Idle_Sec"</span>
+<span class="keyword">FROM</span> SYS.M_TRANSACTIONS
+<span class="keyword">WHERE</span> IDLE_TIME > 3600000; <span class="comment">-- idle > 1 hour</span>
+
+<span class="comment"># Generate a full system report (Mini Check)</span>
+<span class="comment"># Download SAP HANA Mini Check SQL from SAP Note 1969700</span>
+<span class="comment"># Run it via: hdbsql -i 00 -d SYSTEMDB -u SYSTEM -I minicheck.sql</span>
+    </div>
+    <div class="dig-deeper">
+      <h4>Dig Deeper</h4>
+      <ul>
+        <li><strong>SAP Note 1969700</strong> — SQL Statement Collection for HANA (the "Mini Check" — essential!)</li>
+        <li><strong>SAP Note 2000000</strong> — How to analyze SAP HANA trace files</li>
+        <li><strong>HANA Support Ticket Checklist</strong> — Always include: HANA version (<code>HDB version</code>), SPS level, full trace files, and Mini Check output when opening SAP incidents</li>
+        <li><strong>Full System Info Collection</strong> — Use <code>hdbcons 'runtimedump full'</code> for deep system diagnostics</li>
+      </ul>
+    </div>
+  </div></div>
+</div>
+</section>
+
+<!-- ╔════════════════════════════════════════════╗
+     ║  CHAPTER 15: Updates, Patches & Lifecycle  ║
+     ╚════════════════════════════════════════════╝ -->
+<section class="chapter" id="ch15">
+<div class="chapter-header">
+  <div class="chapter-num">Chapter 15</div>
+  <h2>Updates, Patches &amp; Lifecycle Management</h2>
+  <p class="chapter-intro">Keeping HANA current is not optional. Security patches, bug fixes, and performance improvements require a disciplined update strategy.</p>
+</div>
+
+<div class="topic-card" data-topic>
+  <div class="topic-header" onclick="toggleTopic(this)">
+    <h3><span class="topic-icon" style="background:rgba(0,112,210,.15);color:var(--sap-blue)">🔄</span> Update & Upgrade Procedures</h3>
+    <span class="topic-toggle">▼</span>
+  </div>
+  <div class="topic-body"><div class="topic-body-inner">
+    <p>HANA updates come in two forms: <strong>Revision updates</strong> (minor, within same SPS — e.g., SPS 05 Rev 59.00 → Rev 59.04) and <strong>SPS upgrades</strong> (major — e.g., SPS 05 → SPS 06).</p>
+    <div class="code-block">
+<span class="comment"># Check current version</span>
+<span class="cmd">HDB version</span>
+<span class="comment"># Or via SQL:</span>
+<span class="keyword">SELECT</span> VERSION <span class="keyword">FROM</span> SYS.M_DATABASE;
+
+<span class="comment"># Update using HDBLCM</span>
+<span class="cmd">./hdblcm</span> --action=update \
+  --component_dirs=/hana/shared/media/SAP_HANA_DATABASE \
+  --batch
+
+<span class="comment"># With HSR: Update secondary first, takeover, then update old primary</span>
+<span class="comment"># This achieves near-zero downtime updates!</span>
+    </div>
+    <ol class="step-list">
+      <li><strong>Pre-update:</strong> Full backup, check SAP Notes for known issues, verify disk space (2× installation size free)</li>
+      <li><strong>Test first:</strong> Always apply updates to DEV/QAS before production</li>
+      <li><strong>For HSR systems:</strong> Update secondary → verify replication → takeover → update old primary → re-register</li>
+      <li><strong>Post-update:</strong> Run Mini Check, verify all services running, check application connectivity</li>
+    </ol>
+    <div class="pro-tip">
+      <h4>Pro Tip</h4>
+      <p>Subscribe to <strong>SAP HANA Release Notes</strong> on SAP Support Portal. Create a standing change request template for HANA updates so the process is streamlined. Build an automated pre-check script that validates: disk space, current backup status, replication state, and running jobs before each update.</p>
+    </div>
+  </div></div>
+</div>
+
+<div class="quiz-card" id="quiz4">
+  <h4>Final Knowledge Check</h4>
+  <div class="quiz-q">In an HSR environment, what's the correct order for a near-zero downtime update?</div>
+  <div class="quiz-options">
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">Update primary → takeover → update secondary</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'correct')">Update secondary → takeover → update old primary</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">Stop both → update both simultaneously → start both</div>
+    <div class="quiz-opt" onclick="answerQuiz(this,'wrong')">Deregister HSR → update primary only → re-register</div>
+  </div>
+  <div class="quiz-explain">✅ <strong>Update secondary first</strong> while primary continues serving. Then perform a takeover so the updated secondary becomes the new primary. Finally, update the old primary and re-register it as the new secondary. This minimizes downtime to just the takeover window (typically seconds to minutes).</div>
+</div>
+</section>
+
+</div><!-- /main -->
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <p>SAP HANA 2.0 Interactive Learning Guide — Built for practical mastery.</p>
+  <p style="margin-top:.5rem">Always refer to the latest <a href="https://help.sap.com/docs/SAP_HANA_PLATFORM" target="_blank">SAP HANA Documentation</a> and <a href="https://launchpad.support.sap.com" target="_blank">SAP Support Notes</a> for the most current information.</p>
+</footer>
+
+<script>
+// ── Chapter data for TOC ──
+const chapters = [
+  {id:'ch1',title:'Introduction to SAP HANA 2.0'},
+  {id:'ch2',title:'Planning & Sizing'},
+  {id:'ch3',title:'Installation & Setup'},
+  {id:'ch4',title:'Administration Tools'},
+  {id:'ch5',title:'Multi-Tenant DB Containers'},
+  {id:'ch6',title:'User & Authorization Management'},
+  {id:'ch7',title:'Memory Management'},
+  {id:'ch8',title:'Backup & Recovery'},
+  {id:'ch9',title:'High Availability & DR'},
+  {id:'ch10',title:'Performance Monitoring'},
+  {id:'ch11',title:'Security Hardening'},
+  {id:'ch12',title:'Configuration Management'},
+  {id:'ch13',title:'Data Provisioning'},
+  {id:'ch14',title:'Troubleshooting'},
+  {id:'ch15',title:'Updates & Lifecycle'}
+];
+
+// ── Build TOC ──
+const tocList = document.getElementById('tocList');
+chapters.forEach((ch, i) => {
+  const item = document.createElement('a');
+  item.className = 'toc-item';
+  item.href = '#' + ch.id;
+  item.innerHTML = `<span class="toc-num">${String(i+1).padStart(2,'0')}</span> ${ch.title} <span class="toc-check">✓</span>`;
+  item.addEventListener('click', () => setTimeout(toggleSidebar, 300));
+  tocList.appendChild(item);
+});
+
+// ── Sidebar toggle ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+
+// ── Topic card toggle ──
+function toggleTopic(header) {
+  const card = header.closest('.topic-card');
+  const body = card.querySelector('.topic-body');
+  if (card.classList.contains('open')) {
+    body.style.maxHeight = '0';
+    card.classList.remove('open');
+  } else {
+    card.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    // Re-check after images/content load
+    setTimeout(() => { if(card.classList.contains('open')) body.style.maxHeight = body.scrollHeight + 'px'; }, 300);
+  }
+}
+
+// ── Quiz handling ──
+function answerQuiz(opt, result) {
+  const card = opt.closest('.quiz-card');
+  if (card.classList.contains('answered')) return;
+  card.classList.add('answered');
+  opt.classList.add(result);
+  if (result === 'wrong') {
+    card.querySelectorAll('.quiz-opt').forEach(o => {
+      if (o.getAttribute('onclick').includes("'correct'")) o.classList.add('correct');
+    });
+  }
+}
+
+// ── Scroll observer for chapter reveal ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.05 });
+document.querySelectorAll('.chapter').forEach(ch => observer.observe(ch));
+
+// ── Progress bar ──
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('mainNav');
+  const bar = document.getElementById('progressBar');
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  bar.style.width = Math.min(100, (scrollTop / docHeight) * 100) + '%';
+  if (scrollTop > 100) nav.classList.add('scrolled');
+  else nav.classList.remove('scrolled');
+
+  // Update active TOC item
+  const tocItems = tocList.querySelectorAll('.toc-item');
+  let activeIdx = 0;
+  chapters.forEach((ch, i) => {
+    const el = document.getElementById(ch.id);
+    if (el && el.getBoundingClientRect().top <= 200) activeIdx = i;
+  });
+  tocItems.forEach((item, i) => {
+    item.classList.toggle('active', i === activeIdx);
+    if (i < activeIdx) item.classList.add('completed');
+  });
+});
+
+// ── Auto-open first topic card in each chapter on scroll ──
+const autoOpenObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.autoOpened) {
+      entry.target.dataset.autoOpened = 'true';
+      const firstCard = entry.target.querySelector('.topic-card');
+      if (firstCard && !firstCard.classList.contains('open')) {
+        setTimeout(() => toggleTopic(firstCard.querySelector('.topic-header')), 400);
+      }
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.chapter').forEach(ch => autoOpenObserver.observe(ch));
+</script>
+</body>
+</html>

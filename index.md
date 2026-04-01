@@ -31,6 +31,8 @@ An operational reference for SAP performance monitoring. Includes system monitor
 
 A deep-dive technical reference on Native Storage Extension and table partitioning in HANA 2.0 SP8. Covers NSE fundamentals and deep dive, partitioning strategies, interactive decision helpers, ready-to-use implementation SQL, diagnostic monitoring queries, and INI parameter configuration reference.
 
+### [SAP HANA 2.0 SP8 — SAP HANA Configuration & Administration](sap-hana-guide.html)
+
 ---
 
 <sub>Built with interactive visualizations for hands-on learning.</sub>
